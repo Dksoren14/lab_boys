@@ -1,7 +1,7 @@
 ### Setup:
 1. Clone from github:
 ```
-git clone git@github.com:Dksoren14/Self-Driving-Lab-ROB6.git
+git clone git@github.com:Dksoren14/lab_boys.git
 ```
 
 2. Setup workspace:
@@ -9,5 +9,23 @@ git clone git@github.com:Dksoren14/Self-Driving-Lab-ROB6.git
 cd lab_boys
 colcon build
 ```
+Remember that master is only for code we are completely sure works.
+When working 
 
-3. 
+3. Check for development branch:
+```
+git branch -a
+```
+If the output is:
+```
+* main
+remotes/origin/main
+remotes/origin/development
+```
+Move on to step 4, else contact nearest adult.
+
+4. Switch to development branch:
+```
+git switch development
+```
+
