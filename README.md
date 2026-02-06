@@ -18,9 +18,10 @@ git branch -a
 ```
 If the output is:
 ```
-* main
-remotes/origin/main
+* master
+remotes/origin/HEAD
 remotes/origin/development
+remotes/origin/master
 ```
 Move on to step 4, else contact nearest adult.
 
