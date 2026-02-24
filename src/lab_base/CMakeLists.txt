@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(lab_manipulator)
+project(lab_base)
 
 # Use C++20 standard
 set(CMAKE_CXX_STANDARD 20)
@@ -26,37 +26,25 @@ ${CMAKE_SOURCE_DIR}/include
 )
 
 # Add executable for the manipulator node
-add_executable(lab_arm
+add_executable(lab_chassis
     src/main.cpp
 )
 
-target_link_libraries(lab_arm
+target_link_libraries(lab_chassis
   OpenGL::GL 
 )
 
 # Ensure ROS 2 dependencies are added correctly
-ament_target_dependencies(lab_arm
+ament_target_dependencies(lab_chassis
   rclcpp
   std_msgs
   interfaces
 )
 
 # Install the executable
-install(TARGETS lab_arm
+install(TARGETS lab_chassis
   DESTINATION lib/${PROJECT_NAME}
 )
-
-# Install launch files
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
-
-# Install world
-install(DIRECTORY worlds
-  DESTINATION share/${PROJECT_NAME}
-)
-
 
 
 # Ament package
