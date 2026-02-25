@@ -14,6 +14,7 @@ endif()
 # Find ROS 2 dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(interfaces REQUIRED)
 
@@ -37,6 +38,7 @@ target_link_libraries(lab_chassis
 # Ensure ROS 2 dependencies are added correctly
 ament_target_dependencies(lab_chassis
   rclcpp
+  rclcpp_action
   std_msgs
   interfaces
 )
