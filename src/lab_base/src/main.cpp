@@ -13,6 +13,7 @@
 
 using namespace std;
 
+
 class LabBaseNode : public rclcpp::Node
 {
 public:
@@ -20,10 +21,10 @@ public:
     : Node("lab_base_node")
     {
     
-         rclcpp::QoS qos(10);
-         qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
-         qos.durability(rclcpp::DurabilityPolicy::TransientLocal);  
-         std::cout << "Starting client.... " << std::endl;
+        rclcpp::QoS qos(10);
+        qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+        qos.durability(rclcpp::DurabilityPolicy::TransientLocal);
+         std::cout << "Starting server.... " << std::endl;
 
 
 
@@ -45,7 +46,6 @@ private:
     {
         
         interfaces::msg::SocketMsg message;
-
         message.timestamp = this->get_clock()->now().seconds();
         message.data = "Hello, manipulator!";
         test_publisher->publish(message);

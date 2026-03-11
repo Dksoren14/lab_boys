@@ -1,2 +1,2 @@
-float32 timestamp
+float64 timestamp
 string data

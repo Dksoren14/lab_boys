@@ -24,54 +24,38 @@ public:
         qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
         qos.durability(rclcpp::DurabilityPolicy::TransientLocal);
 
-        std::cout << "Starting server.... " << std::endl;
+        std::cout << "Starting client.... " << std::endl;
 
 
         sub_state = create_subscription<interfaces::msg::SocketMsg>(
-            "/lab/lab_chassis/out/socket_msg", qos,
+            "/lab/lab_chassis/in/socket_msg", qos,
             [this](const interfaces::msg::SocketMsg::SharedPtr msg)
             { messageCallback(msg); }
             );
 
-      
-
+            
 
     }
 private:
 
     void messageCallback(const interfaces::msg::SocketMsg::SharedPtr msg)
-    {
-        timestamp = msg->timestamp;
-        data = msg->data;
-    }
+{
+    timestamp = msg->timestamp;
+    data = msg->data;
+
+    //std::cout << "Received message: "
+    //          << msg->data
+    //          << " at time: "
+    //          << std::setprecision(10) << msg->timestamp
+    //          << std::endl;
+}
 
     rclcpp::Subscription<interfaces::msg::SocketMsg>::SharedPtr sub_state;
 
     float timestamp;
     string data;
 
-    void receiveMessage()
-    {
-        // creating socket
-        int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-        // specifying address
-        sockaddr_in serverAddress;
-        serverAddress.sin_family = AF_INET;
-        serverAddress.sin_port = htons(8080); //converting to network byte order
-        serverAddress.sin_addr.s_addr = INADDR_ANY;
-
-        // sending connection request
-        connect(clientSocket, (struct sockaddr*)&serverAddress,
-                sizeof(serverAddress));
-
-        // sending data
-        const char* message = "Hello, server!";
-        send(clientSocket, message, strlen(message), 0);
-
-        // closing socket
-        close(clientSocket);
-    }
+   
     
 
 };
