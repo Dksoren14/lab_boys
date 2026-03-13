@@ -16,6 +16,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(interfaces REQUIRED)
+find_package(rclcpp_action REQUIRED)
 
 # Find OpenGL package
 find_package(OpenGL REQUIRED)
@@ -37,6 +38,7 @@ target_link_libraries(lab_arm
 # Ensure ROS 2 dependencies are added correctly
 ament_target_dependencies(lab_arm
   rclcpp
+  rclcpp_action
   std_msgs
   interfaces
 )
@@ -54,6 +56,10 @@ install(
 
 # Install world
 install(DIRECTORY worlds
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY urdf
   DESTINATION share/${PROJECT_NAME}
 )
 

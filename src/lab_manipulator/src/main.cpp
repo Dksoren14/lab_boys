@@ -4,44 +4,65 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <rcutils/logging.h>
+
+#include "interfaces/msg/socket_msg.hpp"
+
 using namespace std;
 
 
 
+class LabManipulatorNode : public rclcpp::Node
+{
+public:
+    LabManipulatorNode() 
+    : Node("lab_manipulator_node")
+    {
+        rclcpp::QoS qos(10);
+        qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+        qos.durability(rclcpp::DurabilityPolicy::TransientLocal);
+
+        std::cout << "Starting client.... " << std::endl;
 
 
+        sub_state = create_subscription<interfaces::msg::SocketMsg>(
+            "/lab/lab_chassis/in/socket_msg", qos,
+            [this](const interfaces::msg::SocketMsg::SharedPtr msg)
+            { messageCallback(msg); }
+            );
 
+            
 
+    }
+private:
 
+    void messageCallback(const interfaces::msg::SocketMsg::SharedPtr msg)
+{
+    timestamp = msg->timestamp;
+    data = msg->data;
 
-int main() {
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    //std::cout << "Received message: "
+    //          << msg->data
+    //          << " at time: "
+    //          << std::setprecision(10) << msg->timestamp
+    //          << std::endl;
+}
 
-    // specifying the address
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    rclcpp::Subscription<interfaces::msg::SocketMsg>::SharedPtr sub_state;
 
-    // binding socket.
-    bind(serverSocket, (struct sockaddr*)&serverAddress,
-         sizeof(serverAddress));
+    float timestamp;
+    string data;
 
-    // listening to the assigned socket
-    listen(serverSocket, 5);
+   
+    
 
-    // accepting connection request
-    int clientSocket
-        = accept(serverSocket, nullptr, nullptr);
-
-    // recieving data
-    char buffer[1024] = { 0 };
-    recv(clientSocket, buffer, sizeof(buffer), 0);
-    cout << "Message from client: " << buffer
-              << endl;
-
-    // closing the socket.
-    close(serverSocket);
-
+};
+int main(int argc, char * argv[]) {
+    
+    rclcpp::init(argc, argv);;
+    rclcpp::spin(std::make_shared<LabManipulatorNode>());  
+    rclcpp::shutdown();
     return 0;
 }
