@@ -17,12 +17,13 @@ def generate_launch_description():
     clearpath_path = FindPackageShare('clearpath_platform_description').find('clearpath_platform_description')
     pkg_prefix = get_package_prefix("clearpath_platform_description")
     resource_path = os.path.join(pkg_prefix, "share")
+    #lab_self_path = "/home/dksoren/sdl_ros1_src/tudm02_ridgeback/tudm02_description/urdf/tudm02_description.urdf.xacro"
 
     
     xacro_file = PathJoinSubstitution([
         FindPackageShare("lab_manipulator"),
         "urdf",
-        "j100_wrapper.xacro"
+        "r100_wrapper.xacro"
     ])
 
     robot_description = Command([
@@ -51,12 +52,24 @@ def generate_launch_description():
     )
 
 
-    spawn_robot = Node(
+    #spawn_robot = Node(
+    #    package='ros_gz_sim',
+    #    executable='create',
+    #    arguments=[
+    #        '-topic', 'robot_description',
+    #        '-name', 'r100',
+    #        '-x', '0',
+    #        '-y', '0',
+    #        '-z', '0.4'
+    #    ],
+    #    output='screen'
+    #)
+    spawn_lab_robot = Node(
         package='ros_gz_sim',
         executable='create',
         arguments=[
             '-topic', 'robot_description',
-            '-name', 'j100',
+            '-name', 'r100',
             '-x', '0',
             '-y', '0',
             '-z', '0.4'
@@ -65,7 +78,7 @@ def generate_launch_description():
     )
     spawn_robot_delayed = TimerAction(
         period=3.0,
-        actions=[spawn_robot]
+        actions=[spawn_lab_robot]
     )
     # Self made robot exercise
     #spawn_entity = Node(
@@ -90,7 +103,7 @@ def generate_launch_description():
     gazebo_topic = Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
-            arguments=['/model/j100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',],
+            arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',],
             output='screen'
         )
     

@@ -6,6 +6,23 @@
   <xacro:arg name="gazebo_controllers" default="$(find clearpath_control)/config/r100/control/omni_4wd.yaml"/>
   <xacro:arg name="use_platform_controllers" default="true"/>
 
+
+  <!-- Self defined colors-->
+  <material name="clearpath_dark_grey">
+  <color rgba="0.25 0.25 0.25 1"/>
+  </material>
+
+  <material name="clearpath_black">
+    <color rgba="0.05 0.05 0.05 1"/>
+  </material>
+
+  <material name="clearpath_light_grey">
+    <color rgba="0.7 0.7 0.7 1"/>
+  </material>
+
+  <material name="clearpath_yellow">
+    <color rgba="1.0 0.8 0.0 1"/>
+  </material>
   <!-- R100 Platform Macro -->
   <xacro:macro name="r100" params="control:='omni_4wd' front_wheels:='mecanum' rear_wheels:='mecanum'">
     <!-- Variables -->

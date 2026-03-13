@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot name="a200" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="use_platform_controllers" default="false"/>
+
+  <xacro:include filename="$(find clearpath_platform_description)/urdf/a200/a200.urdf.xacro"/>
+
+  <xacro:a200/>
+
+   <gazebo>
+    <plugin filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+
+      <left_joint>front_left_wheel_joint</left_joint>
+      <left_joint>rear_left_wheel_joint</left_joint>
+
+      <right_joint>front_right_wheel_joint</right_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
+
+      <wheel_separation>0.37559</wheel_separation>
+      <wheel_radius>0.098</wheel_radius>
+
+      <topic>/model/a200/cmd_vel</topic>
+
+    </plugin>
+  </gazebo>
+
+
+
+</robot>
