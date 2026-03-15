@@ -103,7 +103,8 @@ def generate_launch_description():
     gazebo_topic = Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
-            arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',],
+            arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/model/r100/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',],
             output='screen'
         )
     

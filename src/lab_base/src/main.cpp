@@ -5,11 +5,17 @@
 #include <unistd.h>
 #include <ctime>
 
+// ROS2 headers
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rcutils/logging.h>
 
+// Include message types
 #include "interfaces/msg/socket_msg.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+
+// Include own headers
+#include "state_manager.h"
 
 using namespace std;
 
@@ -22,61 +28,45 @@ public:
     {
     
         rclcpp::QoS qos(10);
-        qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
-        qos.durability(rclcpp::DurabilityPolicy::TransientLocal);
-         std::cout << "Starting server.... " << std::endl;
+        qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
+        qos.durability(rclcpp::DurabilityPolicy::Volatile);
 
-
-
-         test_publisher = create_publisher<interfaces::msg::SocketMsg>(
-            "/lab/lab_chassis/in/socket_msg", qos
-         );
-        
-            // Start a thread to send messages
-        test_timer = create_wall_timer(1s, std::bind(&LabBaseNode::sendMessage, this)); // Send a message every 200 milliseconds
+        local_position_sub = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/model/r100/odometry",
+            qos,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg){
+                local_position_callback(msg);
+            }
+        );
     }
 
 
 private:
-    rclcpp::Publisher<interfaces::msg::SocketMsg>::SharedPtr test_publisher;
+
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::TimerBase::SharedPtr test_timer;
     time_t current_time;
+    StateManager state_manager;
 
-    void sendMessage()
+    void local_position_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
+        Stamped3DVector local_position = Stamped3DVector(msg->header.stamp, msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
+        state_manager.setLocalPosition(local_position);
         
-        interfaces::msg::SocketMsg message;
-        message.timestamp = this->get_clock()->now().seconds();
-        message.data = "Hello, manipulator!";
-        test_publisher->publish(message);
 
-        
-  
     }
+
+    // Just to test, will be removed later (maybe)
+    //void test_position(){
+    //    Stamped3DVector local_position = state_manager.getLocalPosition();
+    //    RCLCPP_INFO(this->get_logger(), "Current local position: x=%.2f, y=%.2f, z=%.2f", local_position.x(), local_position.y(), local_position.z());
+    //}
+
+
 };
 
 int main(int argc, char * argv[])
 {
-    //// creating socket
-    //int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-//
-    //// specifying address
-    //sockaddr_in serverAddress;
-    //serverAddress.sin_family = AF_INET;
-    //serverAddress.sin_port = htons(8080); //converting to network byte order
-    //serverAddress.sin_addr.s_addr = INADDR_ANY;
-//
-    //// sending connection request
-    //connect(clientSocket, (struct sockaddr*)&serverAddress,
-    //        sizeof(serverAddress));
-//
-    //// sending data
-    //const char* message = "Hello, server!";
-    //send(clientSocket, message, strlen(message), 0);
-//
-    //// closing socket
-    //close(clientSocket);
-
     rclcpp::init(argc, argv);;
     rclcpp::spin(std::make_shared<LabBaseNode>());
     rclcpp::shutdown();

@@ -17,23 +17,26 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(interfaces REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 # Find OpenGL package
 find_package(OpenGL REQUIRED)
 
-include_directories(
 
-${CMAKE_SOURCE_DIR}/include
-)
 
 # Add executable for the manipulator node
 add_executable(lab_chassis
     src/main.cpp
+    src/state_manager.cpp
+)
+target_include_directories(lab_chassis PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(lab_chassis
+target_link_libraries(lab_chassis 
   OpenGL::GL 
 )
+
 
 # Ensure ROS 2 dependencies are added correctly
 ament_target_dependencies(lab_chassis
@@ -41,6 +44,7 @@ ament_target_dependencies(lab_chassis
   rclcpp_action
   std_msgs
   interfaces
+  nav_msgs
 )
 
 # Install the executable
