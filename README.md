@@ -34,3 +34,5 @@ To make the robot move:
 
 ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.5}, angular: {z: 0.0}}"
+
+ros2 action send_goal /asr/thyra/in/drone_command interfaces/action/DroneCommand "{command_type: 'goto', target_pose: [1, 1, -2], yaw: 0.0}"

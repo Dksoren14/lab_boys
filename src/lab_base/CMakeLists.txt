@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.5)
 project(lab_base)
 
 # Use C++20 standard
@@ -19,10 +19,11 @@ find_package(std_msgs REQUIRED)
 find_package(interfaces REQUIRED)
 find_package(nav_msgs REQUIRED)
 
+
 # Find OpenGL package
 find_package(OpenGL REQUIRED)
 
-
+include_directories(include)
 
 # Add executable for the manipulator node
 add_executable(lab_chassis
@@ -51,6 +52,7 @@ ament_target_dependencies(lab_chassis
 install(TARGETS lab_chassis
   DESTINATION lib/${PROJECT_NAME}
 )
+
 
 
 # Ament package

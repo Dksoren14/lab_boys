@@ -10,5 +10,15 @@ Stamped3DVector StateManager::getLocalPosition() {
     return local_position;
 }
 
+void StateManager::setLocalVelocity(const Stamped3DVector& velocity) {
+    std::lock_guard<std::mutex> lock(local_velocity_mutex);
+    local_velocity = velocity;
+}
+
+Stamped3DVector StateManager::getLocalVelocity() {
+    std::lock_guard<std::mutex> lock(local_velocity_mutex);
+    return local_velocity;
+}
+
 
 

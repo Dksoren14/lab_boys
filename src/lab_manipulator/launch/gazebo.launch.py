@@ -100,6 +100,12 @@ def generate_launch_description():
         executable='lab_arm',
         output='screen'
     )
+
+    #lab_base_node = Node(
+    #    package='lab_base',
+    #    executable='lab_base',
+    #    output='screen'
+    #)
     gazebo_topic = Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',

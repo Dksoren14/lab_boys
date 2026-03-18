@@ -43,7 +43,11 @@ class StateManager {
 public:
     void setLocalPosition(const Stamped3DVector& position);
     Stamped3DVector getLocalPosition();
+    void setLocalVelocity(const Stamped3DVector& velocity);
+    Stamped3DVector getLocalVelocity();
 private:
     std::mutex local_position_mutex;
     Stamped3DVector local_position;
+    std::mutex local_velocity_mutex;
+    Stamped3DVector local_velocity;
 };
