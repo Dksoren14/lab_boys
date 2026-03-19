@@ -45,9 +45,17 @@ public:
     Stamped3DVector getLocalPosition();
     void setLocalVelocity(const Stamped3DVector& velocity);
     Stamped3DVector getLocalVelocity();
+    void setTargetPosition(const Stamped3DVector& target_position);
+    Stamped3DVector getTargetPosition();
+    void setControlMode(const int& mode);
+    int getControlMode();
 private:
     std::mutex local_position_mutex;
     Stamped3DVector local_position;
     std::mutex local_velocity_mutex;
     Stamped3DVector local_velocity;
+    std::mutex target_position_mutex;
+    Stamped3DVector target_position;
+    std::mutex control_mode_mutex;
+    int control_mode = 0; 
 };

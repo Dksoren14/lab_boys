@@ -20,5 +20,23 @@ Stamped3DVector StateManager::getLocalVelocity() {
     return local_velocity;
 }
 
+void StateManager::setTargetPosition(const Stamped3DVector& target_position_) {
+    std::lock_guard<std::mutex> lock(target_position_mutex);
+    target_position = target_position_;
+}
 
 
+Stamped3DVector StateManager::getTargetPosition() {
+    std::lock_guard<std::mutex> lock(target_position_mutex);
+    return target_position;
+}
+
+void StateManager::setControlMode(const int& mode) {
+    std::lock_guard<std::mutex> lock(control_mode_mutex);
+    control_mode = mode;
+}
+
+int StateManager::getControlMode() {
+    std::lock_guard<std::mutex> lock(control_mode_mutex);
+    return control_mode;
+}

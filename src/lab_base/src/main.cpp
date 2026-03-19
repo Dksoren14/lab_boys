@@ -18,6 +18,7 @@
 
 // Include own headers
 #include "state_manager.h"
+#include "controller.h"
 
 using namespace std;
 
@@ -28,7 +29,9 @@ public:
     using BaseCommandAction = interfaces::action::BaseCommand;
     using GoalHandleBaseCommand = rclcpp_action::ServerGoalHandle<BaseCommandAction>;
     LabBaseNode() 
-    : Node("lab_base_node")
+    : Node("lab_base_node"),
+    state_manager(),
+    controller(state_manager)
     {
         std::cout << "LabBaseNode initialized" << std::endl;
         // --- Quality of Service settings for subscriptions ---
@@ -42,7 +45,7 @@ public:
             "/model/r100/odometry",
             qos,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg){
-                local_position_callback(msg);
+                local_callback(msg);
             }
         );
 
@@ -68,29 +71,36 @@ public:
 
 
 private:
+    StateManager state_manager;
+    Controller controller;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;  
     rclcpp::TimerBase::SharedPtr test_timer;
     time_t current_time;
-    StateManager state_manager;
+    bool are_we_there_yet = false;
+   
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
 
-    void local_position_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+    int control_mode = 0; // 0: idle, 1: goto, 2: stop
+
+    void local_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
         Stamped3DVector local_position = Stamped3DVector(msg->header.stamp, msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
         state_manager.setLocalPosition(local_position);
 
         Stamped3DVector local_velocity = Stamped3DVector(msg->header.stamp, msg->twist.twist.linear.x, msg->twist.twist.linear.y, msg->twist.twist.linear.z);
         state_manager.setLocalVelocity(local_velocity);
+        //RCLCPP_INFO(this->get_logger(), "StateManager address: %p", &state_manager);
+        //test_position();
 
     }
 
-    // Just to test, will be removed later (maybe)
-    //void test_position(){
-    //    Stamped3DVector local_position = state_manager.getLocalPosition();
-    //    RCLCPP_INFO(this->get_logger(), "Current local position: x=%.2f, y=%.2f, z=%.2f", local_position.x(), local_position.y(), local_position.z());
-    //}
+     //Just to test, will be removed later (maybe)
+    void test_position(){
+        Stamped3DVector local_position = state_manager.getLocalPosition();
+        RCLCPP_INFO(this->get_logger(), "Current local position: x=%.2f, y=%.2f, z=%.2f", local_position.x(), local_position.y(), local_position.z());
+    }
 
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const BaseCommandAction::Goal> goal)
     {
@@ -137,7 +147,9 @@ private:
             if (goal->command == "goto")
             {
                 RCLCPP_INFO(this->get_logger(), "Executing 'goto' command to target pose: [%.2f, %.2f, %.2f]", goal->target_pose[0], goal->target_pose[1], goal->target_pose[2]);
-                execute_velocity_command(goal,result);
+                control_mode = 1;
+                state_manager.setControlMode(control_mode);
+                control_loop(goal, result);
             }
             else if (goal->command == "stop")
             {
@@ -158,21 +170,76 @@ private:
         }
 
     }
+
+
     void execute_velocity_command(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
     {
-        double target_x_dot = goal->target_pose[0];
-        double target_y_dot = goal->target_pose[1];
-        rclcpp::Rate rate(10);  // 10 Hz
-        geometry_msgs::msg::Twist cmd;
-        // Simple proportional controller
-        cmd.linear.x = 1 * target_x_dot;   // forward speed
-        cmd.angular.z = 0.0;             // ignore rotation for now
+       
+        Stamped3DVector target_position(
+            rclcpp::Time(0, 0), // Timestamp can be set to zero or current time if needed
+            goal->target_pose[0], 
+            goal->target_pose[1], 
+            goal->target_pose[2]);
+        state_manager.setTargetPosition(target_position);
+        
+        while (rclcpp::ok())
+        {
+            Stamped3DVector current_position = state_manager.getLocalPosition();
+            RCLCPP_INFO(this->get_logger(), "Current position: x=%.2f, y=%.2f, z=%.2f", current_position.x(), current_position.y(), current_position.z());
 
-        cmd_vel_pub_->publish(cmd);
-        rclcpp::sleep_for(std::chrono::seconds(1));
+            if (controller.simple_distance_test(current_position, target_position))
+            {
+                RCLCPP_INFO(this->get_logger(), "Reached target");
+                geometry_msgs::msg::Twist zero_velocity;
+                zero_velocity.linear.x = 0.0;
+                zero_velocity.linear.y = 0.0;
+                zero_velocity.linear.z = 0.0;
+                cmd_vel_pub_->publish(zero_velocity);
 
-        result->success = true;
-        result->message = "Command executed successfully";
+                result->success = true;
+                result->message = "Target position reached successfully";
+                stop_control_loop();
+                break;
+            }
+            Stamped3DVector local_velocity = state_manager.getLocalVelocity();
+            geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(current_position, target_position, local_velocity);
+            RCLCPP_INFO(this->get_logger(), "Publishing velocity: %.2f", cmd_vel.linear.x);
+            cmd_vel_pub_->publish(cmd_vel);
+
+
+            rclcpp::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+
+
+
+    void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
+    {
+        switch (state_manager.getControlMode())
+        {
+        case 0: // idle
+            // Do nothing
+            break;
+        case 1: // goto
+            execute_velocity_command(goal, result);
+            break;
+        case 2: // stop
+            //execute_stop_command(result);
+            break;
+        default:
+            RCLCPP_WARN(this->get_logger(), "Unknown control mode: %d", state_manager.getControlMode());
+            break;
+        };
+
+    }
+
+    void stop_control_loop()
+    {
+        state_manager.setControlMode(0);
+        state_manager.setTargetPosition(state_manager.getLocalPosition());
+        
+        RCLCPP_INFO(this->get_logger(), "Control loop stopped");
     }
     
 
