@@ -19,6 +19,7 @@
 // Include own headers
 #include "state_manager.h"
 #include "controller.h"
+#include "transformation.h"
 
 using namespace std;
 
@@ -73,6 +74,7 @@ public:
 private:
     StateManager state_manager;
     Controller controller;
+    Transformation transformation;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;  
@@ -141,7 +143,7 @@ private:
     {
         const auto goal = goal_handle->get_goal();
         auto result = std::make_shared<BaseCommandAction::Result>();
-
+        
         try
         {
             if (goal->command == "goto")
@@ -172,7 +174,8 @@ private:
     }
 
 
-    void execute_velocity_command(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
+    void execute_velocity_command(const std::shared_ptr<const BaseCommandAction::Goal> goal, 
+                                  const std::shared_ptr<BaseCommandAction::Result> result)
     {
        
         Stamped3DVector target_position(
@@ -187,25 +190,27 @@ private:
             Stamped3DVector current_position = state_manager.getLocalPosition();
             RCLCPP_INFO(this->get_logger(), "Current position: x=%.2f, y=%.2f, z=%.2f", current_position.x(), current_position.y(), current_position.z());
 
-            if (controller.simple_distance_test(current_position, target_position))
-            {
-                RCLCPP_INFO(this->get_logger(), "Reached target");
-                geometry_msgs::msg::Twist zero_velocity;
-                zero_velocity.linear.x = 0.0;
-                zero_velocity.linear.y = 0.0;
-                zero_velocity.linear.z = 0.0;
-                cmd_vel_pub_->publish(zero_velocity);
-
-                result->success = true;
-                result->message = "Target position reached successfully";
-                stop_control_loop();
-                break;
-            }
+            //if (controller.simple_distance_test(current_position, target_position))
+            //{
+            //    RCLCPP_INFO(this->get_logger(), "Reached target");
+            //    geometry_msgs::msg::Twist zero_velocity;
+            //    zero_velocity.linear.x = 0.0;
+            //    zero_velocity.linear.y = 0.0;
+            //    zero_velocity.linear.z = 0.0;
+            //    cmd_vel_pub_->publish(zero_velocity);
+//
+            //    result->success = true;
+            //    result->message = "Target position reached successfully";
+            //    stop_control_loop();
+            //    break;
+            //}
+            
             Stamped3DVector local_velocity = state_manager.getLocalVelocity();
             geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(current_position, target_position, local_velocity);
             RCLCPP_INFO(this->get_logger(), "Publishing velocity: %.2f", cmd_vel.linear.x);
             cmd_vel_pub_->publish(cmd_vel);
 
+            transformation.transformation();
 
             rclcpp::sleep_for(std::chrono::milliseconds(100));
         }

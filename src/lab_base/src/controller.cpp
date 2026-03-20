@@ -6,28 +6,12 @@ geometry_msgs::msg::Twist Controller::simple_controller(const Stamped3DVector& c
     const Stamped3DVector& target_position, 
     const Stamped3DVector& current_velocity) {
    
-    geometry_msgs::msg::Twist target; // Example target velocity
-    target.linear.x = 2.0;
-    target.linear.y = 0.0;
-    target.linear.z = 0.0;
-    geometry_msgs::msg::Twist error;
-    error.linear.x = target.linear.x - current_velocity.x();
-    error.linear.y = target.linear.y - current_velocity.y();
-    error.linear.z = target.linear.z - current_velocity.z();
-
-
-    previous_error += error;
-    double k = 1.0;
+   
+    
+    
 
     geometry_msgs::msg::Twist output_velocity;
-    output_velocity.linear.x = k * error.linear.x;
-    output_velocity.linear.y = k * error.linear.y;
-    output_velocity.linear.z = k * error.linear.z;
-    RCLCPP_INFO(rclcpp::get_logger("Controller"), "Output velocity: x=%.2f, y=%.2f, z=%.2f", output_velocity.linear.x, output_velocity.linear.y, output_velocity.linear.z);
-    
-    
-
-
+    output_velocity.linear.x = 0;
     return output_velocity;
 }
 

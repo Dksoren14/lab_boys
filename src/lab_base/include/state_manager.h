@@ -49,6 +49,7 @@ public:
     Stamped3DVector getTargetPosition();
     void setControlMode(const int& mode);
     int getControlMode();
+   
 private:
     std::mutex local_position_mutex;
     Stamped3DVector local_position;
