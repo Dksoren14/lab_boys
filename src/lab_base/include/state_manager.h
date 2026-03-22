@@ -38,6 +38,19 @@ struct Stamped3DVector {
     void setTime(const rclcpp::Time& new_time) { timestamp = new_time; }
 };
 
+struct PIDError {
+    double error;
+    double error_d;
+    double error_integral;
+};
+
+struct PositionError {
+    PIDError X;
+    PIDError Y;
+    PIDError Z;
+    PIDError Theta;
+};
+
 
 class StateManager {
 public:
@@ -49,7 +62,9 @@ public:
     Stamped3DVector getTargetPosition();
     void setControlMode(const int& mode);
     int getControlMode();
-   
+    void setPositionError(const PositionError& error);
+    PositionError getPositionError();
+
 private:
     std::mutex local_position_mutex;
     Stamped3DVector local_position;
@@ -58,5 +73,7 @@ private:
     std::mutex target_position_mutex;
     Stamped3DVector target_position;
     std::mutex control_mode_mutex;
+    std::mutex position_error_mutex;
+    PositionError position_error;
     int control_mode = 0; 
 };

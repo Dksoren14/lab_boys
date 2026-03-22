@@ -4,14 +4,26 @@
 
 geometry_msgs::msg::Twist Controller::simple_controller(const Stamped3DVector& current_position, 
     const Stamped3DVector& target_position, 
-    const Stamped3DVector& current_velocity) {
-   
-   
-    
-    
+    const Stamped3DVector& current_velocity, 
+    double sample_time,
+    PositionError previous_position_error) 
+{
+    // Position error (just X for now)
+    double position_error_x = target_position.x() - current_position.x();
 
+    // Derivative (just X for now)
+    double position_error_x_d = 0.0;
+    if (sample_time > 0.0) {
+        position_error_x_d = (position_error_x - previous_position_error.X.error) / sample_time;
+    }
+
+    // PD output
     geometry_msgs::msg::Twist output_velocity;
-    output_velocity.linear.x = 0;
+    output_velocity.linear.x = 1.0 * position_error_x + 0.1 * position_error_x_d;
+
+    // Save error for next tick
+    previous_position_error.X.error = position_error_x;
+
     return output_velocity;
 }
 

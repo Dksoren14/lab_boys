@@ -76,12 +76,15 @@ private:
     Controller controller;
     Transformation transformation;
 
+    rclcpp::TimerBase::SharedPtr control_timer;
+    PositionError previous_position_error;
+    std::shared_ptr<const BaseCommandAction::Goal> current_goal;
+    std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;  
     rclcpp::TimerBase::SharedPtr test_timer;
     time_t current_time;
-    bool are_we_there_yet = false;
-   
+
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
 
     int control_mode = 0; // 0: idle, 1: goto, 2: stop
@@ -151,7 +154,7 @@ private:
                 RCLCPP_INFO(this->get_logger(), "Executing 'goto' command to target pose: [%.2f, %.2f, %.2f]", goal->target_pose[0], goal->target_pose[1], goal->target_pose[2]);
                 control_mode = 1;
                 state_manager.setControlMode(control_mode);
-                control_loop(goal, result);
+                start_control_loop(goal, result);
             }
             else if (goal->command == "stop")
             {
@@ -174,61 +177,55 @@ private:
     }
 
 
-    void execute_velocity_command(const std::shared_ptr<const BaseCommandAction::Goal> goal, 
-                                  const std::shared_ptr<BaseCommandAction::Result> result)
+    void start_control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, 
+                                  const std::shared_ptr<BaseCommandAction::Result> result) 
     {
-       
+        
         Stamped3DVector target_position(
             rclcpp::Time(0, 0), // Timestamp can be set to zero or current time if needed
             goal->target_pose[0], 
             goal->target_pose[1], 
             goal->target_pose[2]);
         state_manager.setTargetPosition(target_position);
-        
-        while (rclcpp::ok())
-        {
-            Stamped3DVector current_position = state_manager.getLocalPosition();
-            RCLCPP_INFO(this->get_logger(), "Current position: x=%.2f, y=%.2f, z=%.2f", current_position.x(), current_position.y(), current_position.z());
 
-            //if (controller.simple_distance_test(current_position, target_position))
-            //{
-            //    RCLCPP_INFO(this->get_logger(), "Reached target");
-            //    geometry_msgs::msg::Twist zero_velocity;
-            //    zero_velocity.linear.x = 0.0;
-            //    zero_velocity.linear.y = 0.0;
-            //    zero_velocity.linear.z = 0.0;
-            //    cmd_vel_pub_->publish(zero_velocity);
-//
-            //    result->success = true;
-            //    result->message = "Target position reached successfully";
-            //    stop_control_loop();
-            //    break;
-            //}
-            
-            Stamped3DVector local_velocity = state_manager.getLocalVelocity();
-            geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(current_position, target_position, local_velocity);
-            RCLCPP_INFO(this->get_logger(), "Publishing velocity: %.2f", cmd_vel.linear.x);
-            cmd_vel_pub_->publish(cmd_vel);
+        current_goal = goal;
+        current_result = result;
 
-            transformation.transformation();
-
-            rclcpp::sleep_for(std::chrono::milliseconds(100));
+        if(!control_timer){
+            control_timer = this->create_wall_timer(
+                std::chrono::milliseconds(100), // Control loop runs every 100 ms
+                [this]()
+                {
+                    control_loop(current_goal, current_result);
+                }
+            );
         }
+          
     }
+    
 
 
 
 
     void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
     {
+        Stamped3DVector current_position = state_manager.getLocalPosition();
+        Stamped3DVector target_position = state_manager.getTargetPosition();
+        Stamped3DVector local_velocity = state_manager.getLocalVelocity();
+        double d_time = (get_clock()->now() - current_position.getTime()).seconds();
         switch (state_manager.getControlMode())
         {
         case 0: // idle
             // Do nothing
             break;
         case 1: // goto
-            execute_velocity_command(goal, result);
+            {
+            geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
+                current_position, target_position, local_velocity, d_time, previous_position_error);
+            
+            cmd_vel_pub_->publish(cmd_vel);
             break;
+            }
         case 2: // stop
             //execute_stop_command(result);
             break;
@@ -241,10 +238,13 @@ private:
 
     void stop_control_loop()
     {
+        if (control_timer) {
+            control_timer->cancel();
+            control_timer.reset();
+            RCLCPP_INFO(this->get_logger(), "Control loop stopped");
+        }
         state_manager.setControlMode(0);
         state_manager.setTargetPosition(state_manager.getLocalPosition());
-        
-        RCLCPP_INFO(this->get_logger(), "Control loop stopped");
     }
     
 

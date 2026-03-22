@@ -40,3 +40,13 @@ int StateManager::getControlMode() {
     std::lock_guard<std::mutex> lock(control_mode_mutex);
     return control_mode;
 }
+
+void StateManager::setPositionError(const PositionError& error) {
+    std::lock_guard<std::mutex> lock(position_error_mutex);
+    position_error = error;
+}
+
+PositionError StateManager::getPositionError() {
+    std::lock_guard<std::mutex> lock(position_error_mutex);
+    return position_error;
+}

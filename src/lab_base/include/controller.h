@@ -17,10 +17,13 @@ public:
     Controller(StateManager& sm) : state_manager(sm) {}
     geometry_msgs::msg::Twist simple_controller(const Stamped3DVector& current_position, 
         const Stamped3DVector& target_position, 
-        const Stamped3DVector& current_velocity);
+        const Stamped3DVector& current_velocity,
+        double sample_time,
+        PositionError previous_position_error
+        );
     bool simple_distance_test(const Stamped3DVector& current_position, const Stamped3DVector& target_position);
 
 private:
     StateManager& state_manager;
-
+    
 };
