@@ -15,6 +15,7 @@
 #include "interfaces/action/base_command.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 
 // Include own headers
 #include "state_manager.h"
@@ -42,13 +43,22 @@ public:
 
 
         // --- Subscriptions ---
-        local_position_sub = this->create_subscription<nav_msgs::msg::Odometry>(
-            "/model/r100/odometry",
+      //  local_position_sub = this->create_subscription<nav_msgs::msg::Odometry>(
+      //      "/model/r100/odometry",
+      //      qos,
+      //      [this](const nav_msgs::msg::Odometry::SharedPtr msg){
+      //          local_callback(msg);
+      //      }
+      //  );
+
+        base_global_position_sub = this->create_subscription<geometry_msgs::msg::PoseArray>(
+            "/world/car_world/dynamic_pose/info",
             qos,
-            [this](const nav_msgs::msg::Odometry::SharedPtr msg){
-                local_callback(msg);
+            [this](const geometry_msgs::msg::PoseArray::SharedPtr msg){
+                global_callback(msg);
             }
         );
+
 
         // --- Publishers ---
         cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(
@@ -81,6 +91,7 @@ private:
     std::shared_ptr<const BaseCommandAction::Goal> current_goal;
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
+    rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr base_global_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;  
     rclcpp::TimerBase::SharedPtr test_timer;
     time_t current_time;
@@ -100,6 +111,20 @@ private:
         //test_position();
 
     }
+
+        void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
+    {
+        Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[0].position.x, msg->poses[0].position.y, msg->poses[0].position.z);
+        Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[0].orientation.x, msg->poses[0].orientation.y, msg->poses[0].orientation.z); 
+        state_manager.setGlobalBasePosition(global_position);
+        state_manager.setGlobalBaseOrientation(global_orientation);
+
+        std::cout << "Received global position: x=" << global_position.x() << ", y=" << global_position.y() << ", z=" << global_position.z() << std::endl;
+        std::cout << "Received global orientation: x=" << global_orientation.x() << ", y=" << global_orientation.y() << ", z=" << global_orientation.z() << std::endl;
+
+    }
+
+
 
      //Just to test, will be removed later (maybe)
     void test_position(){
@@ -209,9 +234,9 @@ private:
 
     void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
     {
-        Stamped3DVector current_position = state_manager.getLocalPosition();
+        Stamped3DVector current_position = state_manager.getGlobalBasePosition();
+        Stamped3DVector current_orientation = state_manager.getGlobalBaseOrientation();
         Stamped3DVector target_position = state_manager.getTargetPosition();
-        Stamped3DVector local_velocity = state_manager.getLocalVelocity();
         double d_time = (get_clock()->now() - current_position.getTime()).seconds();
         switch (state_manager.getControlMode())
         {
@@ -221,7 +246,11 @@ private:
         case 1: // goto
             {
             geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
-                current_position, target_position, local_velocity, d_time, previous_position_error);
+                current_position, 
+                current_orientation,
+                target_position,  
+                d_time, 
+                previous_position_error);
             
             cmd_vel_pub_->publish(cmd_vel);
             break;

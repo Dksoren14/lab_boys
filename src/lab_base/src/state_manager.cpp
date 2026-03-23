@@ -1,5 +1,6 @@
 #include "state_manager.h"
 
+// Non used position - obtains error
 void StateManager::setLocalPosition(const Stamped3DVector& position) {
     std::lock_guard<std::mutex> lock(local_position_mutex);
     local_position = position;
@@ -8,6 +9,25 @@ void StateManager::setLocalPosition(const Stamped3DVector& position) {
 Stamped3DVector StateManager::getLocalPosition() {
     std::lock_guard<std::mutex> lock(local_position_mutex);
     return local_position;
+}
+
+void StateManager::setGlobalBasePosition(const Stamped3DVector& position) {
+    std::lock_guard<std::mutex> lock(global_base_position_mutex);
+    global_base_position = position;
+}
+
+Stamped3DVector StateManager::getGlobalBasePosition() {
+    std::lock_guard<std::mutex> lock(global_base_position_mutex);
+    return global_base_position;
+}
+void StateManager::setGlobalBaseOrientation(const Stamped3DVector& orientation) {
+    std::lock_guard<std::mutex> lock(global_base_orientation_mutex);
+    global_base_orientation = orientation;
+}
+
+Stamped3DVector StateManager::getGlobalBaseOrientation() {
+    std::lock_guard<std::mutex> lock(global_base_orientation_mutex);
+    return global_base_orientation;
 }
 
 void StateManager::setLocalVelocity(const Stamped3DVector& velocity) {

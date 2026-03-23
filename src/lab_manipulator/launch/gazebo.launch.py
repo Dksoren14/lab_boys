@@ -110,7 +110,8 @@ def generate_launch_description():
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
-            '/model/r100/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',],
+            '/model/r100/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            '/world/car_world/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',],
             output='screen'
         )
     

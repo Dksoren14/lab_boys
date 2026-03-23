@@ -3,8 +3,8 @@
 
 
 geometry_msgs::msg::Twist Controller::simple_controller(const Stamped3DVector& current_position, 
-    const Stamped3DVector& target_position, 
-    const Stamped3DVector& current_velocity, 
+    const Stamped3DVector& current_orientation,
+    const Stamped3DVector& target_position,  
     double sample_time,
     PositionError previous_position_error) 
 {
@@ -23,6 +23,9 @@ geometry_msgs::msg::Twist Controller::simple_controller(const Stamped3DVector& c
 
     // Save error for next tick
     previous_position_error.X.error = position_error_x;
+
+    output_velocity.linear.x = std::clamp(output_velocity.linear.x, -5.0, 5.0); 
+
 
     return output_velocity;
 }

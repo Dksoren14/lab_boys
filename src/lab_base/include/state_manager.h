@@ -56,6 +56,10 @@ class StateManager {
 public:
     void setLocalPosition(const Stamped3DVector& position);
     Stamped3DVector getLocalPosition();
+    void setGlobalBasePosition(const Stamped3DVector& position);
+    Stamped3DVector getGlobalBasePosition();
+    void setGlobalBaseOrientation(const Stamped3DVector& orientation);
+    Stamped3DVector getGlobalBaseOrientation();
     void setLocalVelocity(const Stamped3DVector& velocity);
     Stamped3DVector getLocalVelocity();
     void setTargetPosition(const Stamped3DVector& target_position);
@@ -64,10 +68,16 @@ public:
     int getControlMode();
     void setPositionError(const PositionError& error);
     PositionError getPositionError();
+    
+
 
 private:
     std::mutex local_position_mutex;
     Stamped3DVector local_position;
+    std::mutex global_base_position_mutex;
+    Stamped3DVector global_base_position;
+    std::mutex global_base_orientation_mutex;
+    Stamped3DVector global_base_orientation;
     std::mutex local_velocity_mutex;
     Stamped3DVector local_velocity;
     std::mutex target_position_mutex;
