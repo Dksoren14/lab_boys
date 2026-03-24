@@ -5,11 +5,24 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
-
+#include <eigen3/Eigen/StdVector>
 #include <iostream>
 
+#include <rclcpp/rclcpp.hpp>
+
+#include "state_manager.h"
+
+
 class Transformation {
-public:    
-    bool transformation(); 
+public:   
+    Eigen::Vector3d global_to_local(
+        const Stamped3DVector& target_vector, 
+        const Stamped3DVector& current_position, 
+        const Eigen::Vector3d& current_orientation);
+    Eigen::Vector3d quaternion_to_euler(const Eigen::Quaterniond& q) const;
+    double unwrapAngle(double angle, double max, double min) const;
+
+private:
+
 };
 

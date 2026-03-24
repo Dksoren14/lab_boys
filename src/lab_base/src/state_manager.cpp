@@ -20,12 +20,12 @@ Stamped3DVector StateManager::getGlobalBasePosition() {
     std::lock_guard<std::mutex> lock(global_base_position_mutex);
     return global_base_position;
 }
-void StateManager::setGlobalBaseOrientation(const Stamped3DVector& orientation) {
+void StateManager::setGlobalBaseOrientation(const Eigen::Quaterniond& orientation) {
     std::lock_guard<std::mutex> lock(global_base_orientation_mutex);
     global_base_orientation = orientation;
 }
 
-Stamped3DVector StateManager::getGlobalBaseOrientation() {
+Eigen::Quaterniond StateManager::getGlobalBaseOrientation() {
     std::lock_guard<std::mutex> lock(global_base_orientation_mutex);
     return global_base_orientation;
 }

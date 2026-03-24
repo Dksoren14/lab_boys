@@ -117,10 +117,21 @@ private:
         Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[0].position.x, msg->poses[0].position.y, msg->poses[0].position.z);
         Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[0].orientation.x, msg->poses[0].orientation.y, msg->poses[0].orientation.z); 
         state_manager.setGlobalBasePosition(global_position);
-        state_manager.setGlobalBaseOrientation(global_orientation);
+        auto& q_msg = msg->poses[0].orientation;
+
+        Eigen::Quaterniond q(
+            q_msg.w,
+            q_msg.x,
+            q_msg.y,
+            q_msg.z
+        );
+
+        state_manager.setGlobalBaseOrientation(q);
 
         std::cout << "Received global position: x=" << global_position.x() << ", y=" << global_position.y() << ", z=" << global_position.z() << std::endl;
         std::cout << "Received global orientation: x=" << global_orientation.x() << ", y=" << global_orientation.y() << ", z=" << global_orientation.z() << std::endl;
+        Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(q);
+        std::cout << "Euler angles: roll=" << euler_angles.x() << ", pitch=" << euler_angles.y() << ", yaw=" << euler_angles.z() << std::endl;
 
     }
 
@@ -235,7 +246,8 @@ private:
     void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
     {
         Stamped3DVector current_position = state_manager.getGlobalBasePosition();
-        Stamped3DVector current_orientation = state_manager.getGlobalBaseOrientation();
+        Eigen::Quaterniond current_orientation = state_manager.getGlobalBaseOrientation();
+        Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(current_orientation);
         Stamped3DVector target_position = state_manager.getTargetPosition();
         double d_time = (get_clock()->now() - current_position.getTime()).seconds();
         switch (state_manager.getControlMode())
@@ -245,14 +257,16 @@ private:
             break;
         case 1: // goto
             {
-            geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
-                current_position, 
-                current_orientation,
-                target_position,  
-                d_time, 
-                previous_position_error);
-            
-            cmd_vel_pub_->publish(cmd_vel);
+            //geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
+            //    current_position, 
+            //    current_orientation,
+            //    target_position,  
+            //    d_time, 
+            //    previous_position_error);
+            //
+            //cmd_vel_pub_->publish(cmd_vel);
+            Eigen::Vector3d local_vector = transformation.global_to_local(target_position, current_position, euler_angles);
+            std::cout << "Local vector to target: x=" << local_vector.x() << ", y=" << local_vector.y() << ", z=" << local_vector.z() << std::endl;
             break;
             }
         case 2: // stop
