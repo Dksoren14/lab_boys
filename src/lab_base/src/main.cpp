@@ -61,7 +61,7 @@ public:
 
 
         // --- Publishers ---
-        cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(
+        cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>(
         "/model/r100/cmd_vel", 10);
 
         // -- Action server ---
@@ -92,9 +92,10 @@ private:
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr base_global_position_sub;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;  
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub;  
     rclcpp::TimerBase::SharedPtr test_timer;
     time_t current_time;
+    bool reached_target_angle = false;
 
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
 
@@ -127,11 +128,6 @@ private:
         );
 
         state_manager.setGlobalBaseOrientation(q);
-
-        std::cout << "Received global position: x=" << global_position.x() << ", y=" << global_position.y() << ", z=" << global_position.z() << std::endl;
-        std::cout << "Received global orientation: x=" << global_orientation.x() << ", y=" << global_orientation.y() << ", z=" << global_orientation.z() << std::endl;
-        Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(q);
-        std::cout << "Euler angles: roll=" << euler_angles.x() << ", pitch=" << euler_angles.y() << ", yaw=" << euler_angles.z() << std::endl;
 
     }
 
@@ -257,6 +253,7 @@ private:
             break;
         case 1: // goto
             {
+
             //geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
             //    current_position, 
             //    current_orientation,
@@ -264,9 +261,37 @@ private:
             //    d_time, 
             //    previous_position_error);
             //
-            //cmd_vel_pub_->publish(cmd_vel);
-            Eigen::Vector3d local_vector = transformation.global_to_local(target_position, current_position, euler_angles);
-            std::cout << "Local vector to target: x=" << local_vector.x() << ", y=" << local_vector.y() << ", z=" << local_vector.z() << std::endl;
+            //cmd_vel_pub->publish(cmd_vel);
+            
+            Eigen::Vector3d target_vector = transformation.global_to_local(target_position, current_position, euler_angles);
+
+            if(!reached_target_angle){
+                TurnResult turn_result = controller.turn_controller(
+                    target_vector, 
+                    euler_angles, 
+                    d_time, 
+                    previous_position_error);
+                    if(abs(target_vector.z()- euler_angles.x()) < 0.01){
+                        reached_target_angle = true;
+                    }
+                cmd_vel_pub->publish(turn_result.cmd);
+                if (std::abs(turn_result.angle_error) < 0.01) {
+                    std::cout << "Target angle reached, switching to linear control" << std::endl;
+                    reached_target_angle = true;
+                }
+            }
+            else{
+                geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
+                current_position,
+                euler_angles,
+                target_vector,
+                target_position,
+                d_time,
+                previous_position_error);
+                cmd_vel_pub->publish(cmd_vel);
+            }
+            
+                
             break;
             }
         case 2: // stop

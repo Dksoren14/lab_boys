@@ -8,6 +8,9 @@
 #include <eigen3/Eigen/StdVector>
 #include <rclcpp/rclcpp.hpp>
 
+#include "geometry_msgs/msg/twist.hpp"
+
+
 struct Stamped3DVector {
     rclcpp::Time timestamp = rclcpp::Time(0, 0);
     Eigen::Vector3d data = Eigen::Vector3d::Zero();
@@ -49,6 +52,11 @@ struct PositionError {
     PIDError Y;
     PIDError Z;
     PIDError Theta;
+};
+
+struct TurnResult {
+    geometry_msgs::msg::Twist cmd;
+    double angle_error;
 };
 
 

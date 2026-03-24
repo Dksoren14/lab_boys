@@ -20,6 +20,7 @@ public:
         const Stamped3DVector& current_position, 
         const Eigen::Vector3d& current_orientation);
     Eigen::Vector3d quaternion_to_euler(const Eigen::Quaterniond& q) const;
+    Eigen::Quaterniond euler_to_quaternion(double roll, double pitch, double yaw) const;
     double unwrapAngle(double angle, double max, double min) const;
 
 private:

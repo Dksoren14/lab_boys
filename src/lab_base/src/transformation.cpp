@@ -52,6 +52,13 @@ Eigen::Vector3d Transformation::quaternion_to_euler(const Eigen::Quaterniond& q)
     return Eigen::Vector3d(yaw, pitch, roll);
 }
 
+Eigen::Quaterniond Transformation::euler_to_quaternion(double roll, double pitch, double yaw) const {
+    Eigen::Quaterniond q = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()) *
+                           Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY()) *
+                           Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX());
+    return q.normalized();
+}
+
 double Transformation::unwrapAngle(double angle, double max, double min) const {
     // Unwrap the angle to be within the range [min, max]    
     while (angle > max) angle -= 2.0 * M_PI;
