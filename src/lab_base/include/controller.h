@@ -16,14 +16,14 @@
 class Controller{
 public:
     Controller(StateManager& sm) : state_manager(sm) {}
-    TurnResult turn_controller(Eigen::Vector3d& target_vector,
+    TurnResult turn_controller(double angle_to_target,
         Eigen::Vector3d& current_angle,
         double sample_time,
         PositionError& previous_position_error);
     geometry_msgs::msg::Twist simple_controller(const Stamped3DVector& current_position, 
         Eigen::Vector3d& current_angle,
-        Eigen::Vector3d& target_vector,
         Stamped3DVector&  target_position,
+        double angle_to_target,
         double sample_time,
         PositionError& previous_position_error
         );

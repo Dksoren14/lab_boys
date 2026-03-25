@@ -185,6 +185,7 @@ private:
             {
                 RCLCPP_INFO(this->get_logger(), "Executing 'goto' command to target pose: [%.2f, %.2f, %.2f]", goal->target_pose[0], goal->target_pose[1], goal->target_pose[2]);
                 control_mode = 1;
+                reached_target_angle = false;
                 state_manager.setControlMode(control_mode);
                 start_control_loop(goal, result);
             }
@@ -254,26 +255,16 @@ private:
         case 1: // goto
             {
 
-            //geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
-            //    current_position, 
-            //    current_orientation,
-            //    target_position,  
-            //    d_time, 
-            //    previous_position_error);
-            //
-            //cmd_vel_pub->publish(cmd_vel);
-            
             Eigen::Vector3d target_vector = transformation.global_to_local(target_position, current_position, euler_angles);
+            double angle_to_target = transformation.calculate_angle_to_target(target_position, euler_angles);
 
             if(!reached_target_angle){
                 TurnResult turn_result = controller.turn_controller(
-                    target_vector, 
+                    angle_to_target, 
                     euler_angles, 
                     d_time, 
                     previous_position_error);
-                    if(abs(target_vector.z()- euler_angles.x()) < 0.01){
-                        reached_target_angle = true;
-                    }
+                    
                 cmd_vel_pub->publish(turn_result.cmd);
                 if (std::abs(turn_result.angle_error) < 0.01) {
                     std::cout << "Target angle reached, switching to linear control" << std::endl;
@@ -284,11 +275,19 @@ private:
                 geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
                 current_position,
                 euler_angles,
-                target_vector,
                 target_position,
+                angle_to_target,
                 d_time,
                 previous_position_error);
                 cmd_vel_pub->publish(cmd_vel);
+                //if(std::abs(target_vector.x()) < 0.1){
+                //    RCLCPP_INFO(this->get_logger(), "Target position reached");
+                //    cmd_vel.linear.x = 0.0;
+                //    cmd_vel.angular.z = 0.0;
+                //    cmd_vel_pub->publish(cmd_vel);
+                //    result->success = true;
+                //    stop_control_loop();
+                //}
             }
             
                 
@@ -312,7 +311,7 @@ private:
             RCLCPP_INFO(this->get_logger(), "Control loop stopped");
         }
         state_manager.setControlMode(0);
-        state_manager.setTargetPosition(state_manager.getLocalPosition());
+        
     }
     
 
