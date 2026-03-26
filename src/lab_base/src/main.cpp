@@ -88,14 +88,15 @@ private:
 
     rclcpp::TimerBase::SharedPtr control_timer;
     PositionError previous_position_error;
+    PositionError previous_angle_error;
     std::shared_ptr<const BaseCommandAction::Goal> current_goal;
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr base_global_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub;  
-    rclcpp::TimerBase::SharedPtr test_timer;
-    time_t current_time;
+    rclcpp::Time last_time;
     bool reached_target_angle = false;
+
 
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
 
@@ -242,11 +243,21 @@ private:
 
     void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
     {
+        auto now = get_clock()->now();
+
+
+        if (last_time.nanoseconds() == 0) {
+            last_time = now;
+        }
+    
+        double d_time = (now - last_time).seconds();
+        last_time = now;
+
         Stamped3DVector current_position = state_manager.getGlobalBasePosition();
         Eigen::Quaterniond current_orientation = state_manager.getGlobalBaseOrientation();
         Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(current_orientation);
         Stamped3DVector target_position = state_manager.getTargetPosition();
-        double d_time = (get_clock()->now() - current_position.getTime()).seconds();
+       
         switch (state_manager.getControlMode())
         {
         case 0: // idle
@@ -255,39 +266,51 @@ private:
         case 1: // goto
             {
 
-            Eigen::Vector3d target_vector = transformation.global_to_local(target_position, current_position, euler_angles);
-            double angle_to_target = transformation.calculate_angle_to_target(target_position, euler_angles);
 
+            
+            
             if(!reached_target_angle){
-                TurnResult turn_result = controller.turn_controller(
-                    angle_to_target, 
+                
+                TurnResult cmd_vel_angular = controller.turn_controller(
                     euler_angles, 
+                    target_position,
+                    current_position,
                     d_time, 
-                    previous_position_error);
+                    previous_angle_error);
                     
-                cmd_vel_pub->publish(turn_result.cmd);
-                if (std::abs(turn_result.angle_error) < 0.01) {
+                cmd_vel_pub->publish(cmd_vel_angular.cmd);
+                if (std::abs(cmd_vel_angular.angle_error) < 0.04) {
                     std::cout << "Target angle reached, switching to linear control" << std::endl;
                     reached_target_angle = true;
+                    previous_position_error.X.error = 0.0; // Reset position error for linear control
+                    previous_angle_error.Z.error = 0.0; // Reset angle error for linear control
+                    
                 }
             }
             else{
-                geometry_msgs::msg::Twist cmd_vel = controller.simple_controller(
+                geometry_msgs::msg::Twist cmd_vel = controller.PD_controller(
                 current_position,
                 euler_angles,
                 target_position,
-                angle_to_target,
                 d_time,
-                previous_position_error);
+                previous_position_error,
+                previous_angle_error
+                );
                 cmd_vel_pub->publish(cmd_vel);
-                //if(std::abs(target_vector.x()) < 0.1){
-                //    RCLCPP_INFO(this->get_logger(), "Target position reached");
-                //    cmd_vel.linear.x = 0.0;
-                //    cmd_vel.angular.z = 0.0;
-                //    cmd_vel_pub->publish(cmd_vel);
-                //    result->success = true;
-                //    stop_control_loop();
-                //}
+                std::cout << "How close to target: " << controller.euclidean_distance(current_position, target_position) << std::endl;
+                if(controller.euclidean_distance(current_position, target_position) < 0.10){
+                    RCLCPP_INFO(this->get_logger(), "Target position reached");
+                    cmd_vel.linear.x = 0.0;
+                    cmd_vel.angular.z = 0.0;
+                    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+                    state_manager.setTargetPosition(target_profile);
+                    reached_target_angle = false;
+                    previous_position_error.X.error = 0.0;
+                    previous_angle_error.Z.error = 0.0;
+                    cmd_vel_pub->publish(cmd_vel);
+                    result->success = true;
+                    stop_control_loop();
+                }
             }
             
                 

@@ -20,38 +20,49 @@ Eigen::Vector3d Transformation::global_to_local(
     return local_vector;
 }   
 
-Eigen::Vector3d Transformation::global_to_local_error(const Stamped3DVector& current_position,
+Eigen::Vector3d Transformation::global_to_local_error(
+    const Stamped3DVector& current_position,
     Eigen::Vector3d& global_error,
     const Eigen::Vector3d& current_orientation
 ){
 
-    double yaw = current_orientation.x(); 
-    Eigen::Matrix3d transformation_matrix;
-    transformation_matrix << cos(yaw), -sin(yaw), current_position.x(),
-                             sin(yaw),  cos(yaw), current_position.y(),
-                                  0,       0,     1;
+    double yaw = current_orientation.z();
 
-    Eigen::Vector3d local_error = transformation_matrix.inverse() * global_error;
+    double local_x =  cos(yaw) * global_error.x() + sin(yaw) * global_error.y();
+    double local_y = -sin(yaw) * global_error.x() + cos(yaw) * global_error.y();
 
-    return local_error;
+    return Eigen::Vector3d(local_x, local_y, 0.0);
 }
 
 
 
-double Transformation::calculate_angle_to_target(const Stamped3DVector& target_vector, 
+double Transformation::calculate_angle_to_target(
+    const Stamped3DVector& target_vector,
+    const Stamped3DVector& current_position, 
     const Eigen::Vector3d& current_orientation) {
-    double yaw = current_orientation.x();
-    
-     Eigen::Matrix3d transformation_matrix;
-    transformation_matrix << cos(yaw), -sin(yaw), 0,
-                             sin(yaw),  cos(yaw), 0,
-                                  0,       0,     1;   
-    Eigen::Vector3d homogeneous_target_vector = Eigen::Vector3d(target_vector.x(), target_vector.y(), 1);
-    Eigen::Vector3d local_vector = transformation_matrix.inverse() * homogeneous_target_vector;
 
-    double local_yaw = atan2(local_vector.y(), local_vector.x());
-    return local_yaw;
+
+    double yaw = current_orientation.z();
+
+    //Eigen::Matrix3d transformation_matrix;
+    //transformation_matrix << cos(yaw), -sin(yaw), 0,
+    //                         sin(yaw),  cos(yaw), 0,
+    //                              0,       0,     1;   
+    //Eigen::Vector3d homogeneous_target_vector = Eigen::Vector3d(target_vector.x(), target_vector.y(), 1);
+    //Eigen::Vector3d local_vector = transformation_matrix.inverse() * homogeneous_target_vector;
+//
+    //double local_angle_error = atan2(local_vector.y(), local_vector.x());
+    //return local_angle_error; The old way, aparently wrong
+
+    double dx = target_vector.x() - current_position.x();
+    double dy = target_vector.y() - current_position.y();
+    
+    double local_x = cos(yaw) * dx + sin(yaw) * dy;
+    double local_y = -sin(yaw) * dx + cos(yaw) * dy;
+
+    return atan2(local_y, local_x);
 }
+
 
 
 
@@ -74,7 +85,7 @@ Eigen::Vector3d Transformation::quaternion_to_euler(const Eigen::Quaterniond& q)
     }
 
     // Unwrap angles to [0, 2π]
-    yaw = unwrapAngle(yaw, 2 * M_PI, 0);
+    yaw = unwrapAngle(yaw, M_PI, -M_PI);
     pitch = unwrapAngle(pitch, 2 * M_PI, 0);
     roll = unwrapAngle(roll, 2 * M_PI, 0);
 

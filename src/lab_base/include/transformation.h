@@ -19,7 +19,9 @@ public:
         const Stamped3DVector& target_vector, 
         const Stamped3DVector& current_position, 
         const Eigen::Vector3d& current_orientation);
-    double calculate_angle_to_target(const Stamped3DVector& target_vector, 
+    double calculate_angle_to_target(
+        const Stamped3DVector& target_vector,
+        const Stamped3DVector& current_position, 
         const Eigen::Vector3d& current_orientation);
     Eigen::Vector3d global_to_local_error(const Stamped3DVector& current_position,
         Eigen::Vector3d& global_error,
