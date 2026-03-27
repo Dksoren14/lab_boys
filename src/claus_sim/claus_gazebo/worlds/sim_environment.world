@@ -12,22 +12,11 @@
       <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/ground%20plane</uri>
     </include>
 
-    <!-- Simple object -->
-    <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box><size>1 1 1</size></box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box><size>1 1 1</size></box>
-          </geometry>
-        </visual>
-      </link>
-    </model>
-
+    <!-- Table -->
+    <include>
+      <uri>model://table</uri>
+      <pose>1 0 0 0 0 0</pose>
+    </include> 
+    
   </world>
 </sdf>
