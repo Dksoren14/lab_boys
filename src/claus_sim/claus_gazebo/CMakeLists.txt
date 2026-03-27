@@ -24,3 +24,8 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
+install(
+	DIRECTORY launch worlds
+	DESTINATION share/claus_gazebo
+)
