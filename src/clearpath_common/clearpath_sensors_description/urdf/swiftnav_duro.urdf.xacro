@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="swiftnav_duro" params="name parent_link *origin">
+    <xacro:include filename="$(find clearpath_sensors_description)/urdf/gnss_antenna.urdf.xacro" />
+    <xacro:gnss_antenna prefix="${name}" parent_link="${parent_link}" type="spherical">
+      <xacro:insert_block name="origin"/>
+    </xacro:gnss_antenna>
+
+    <gazebo reference="${name}_link">
+      <sensor name="${name}" type="navsat">
+        <always_on>1</always_on>
+        <update_rate>1</update_rate>
+        <gz_frame_id>${name}_link</gz_frame_id>
+        <topic>$(arg namespace)/sensors/${name}/navsat</topic>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+</robot>
