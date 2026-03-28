@@ -1,3 +1,4 @@
+
 #include <cstring>
 #include <iostream>
 #include <netinet/in.h>
@@ -36,6 +37,52 @@ public:
     controller(state_manager)
     {
         std::cout << "LabBaseNode initialized" << std::endl;
+        PIDControllerGains pid_gains;
+        this->declare_parameter<double>("controller.kp", 1.0);
+        this->declare_parameter<double>("controller.kd", 0.1);
+
+        pid_gains.kp = this->get_parameter("controller.kp").as_double();
+        pid_gains.kd = this->get_parameter("controller.kd").as_double();
+
+        std::cout << "Controller gains: kp=" << pid_gains.kp << ", kd=" << pid_gains.kd << std::endl;
+
+        std::cout << R"(
+
+                               /T /I                       
+                              / |/ | .-~/                  
+                          T\ Y  I  |/  /  _          
+         /T               | \I  |  I  Y.-~/                 
+        I l   /I       T\ |  |  l  |  T  /                  
+     T\ |  \ Y l  /T   | \I  l   \ `  l Y                       
+ __  | \l   \l  \I l __l  l   \   `  _. |                   
+ \ ~-l  `\   `\  \  \\ ~\  \   `. .-~   |                    
+  \   ~-. "-.  `  \  ^._ ^. "-.  /  \   |                   
+.--~-._  ~-  `  _  ~-_.-"-." ._ /._ ." ./                   
+ >--.  ~-.   ._  ~>-"    "\   7   7   ]                    
+^.___~"--._    ~-{  .-~ .  `\ Y . /    |                    
+ <__ ~"-.  ~       /_/   \   \I  Y   : |                    
+   ^-.__           ~(_/   \   >._:   | l______              
+       ^--.,___.-~"  /_/   !  `-.~"--l_ /     ~"-.          
+              (_/ .  ~(   /'     "~"--,Y   -=b-. _)             
+               (_/ .  \  :           / l      c"~o  \
+                \ /    `.    .     .^   \_.-~"~--.  )           
+                 (_/ .   `  /     /       !       )/        
+                  / / _.   '.   .':      /        '         
+                  ~(_/ .   /    _  `  .-<_                  
+                    /_/ . ' .-~" `.  / \  \          ,z=.       
+                    ~( /   '  :   | K   "-.~-.______//          
+                      "-,.    l   I/ \_    __{--->._(==.        
+                       //(     \  <    ~"~"     //          
+                      /' /\     \  \     ,v=.  ((           
+                    .^. / /\     "  }__ //===-  `           
+                   / / ' '  "-.,__ {---(==-                 
+                 .^ '       :  T  ~"   ll
+                / .  .  . : | :!        \\
+               (_/  /   | | j-"          ~^             
+                 ~-<_(_.^-~"                            
+
+)" << std::endl;
+        controller.setGains(pid_gains);
         // --- Quality of Service settings for subscriptions ---
         rclcpp::QoS qos(10);
         qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
@@ -288,17 +335,17 @@ private:
                 }
             }
             else{
-                geometry_msgs::msg::Twist cmd_vel = controller.PD_controller(
-                current_position,
-                euler_angles,
-                target_position,
-                d_time,
-                previous_position_error,
-                previous_angle_error
+                geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                    current_position,
+                    euler_angles,
+                    target_position,
+                    d_time,
+                    previous_position_error,
+                    previous_angle_error
                 );
                 cmd_vel_pub->publish(cmd_vel);
                 std::cout << "How close to target: " << controller.euclidean_distance(current_position, target_position) << std::endl;
-                if(controller.euclidean_distance(current_position, target_position) < 0.10){
+                if(controller.euclidean_distance(current_position, target_position) < 0.03){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
                     cmd_vel.linear.x = 0.0;
                     cmd_vel.angular.z = 0.0;

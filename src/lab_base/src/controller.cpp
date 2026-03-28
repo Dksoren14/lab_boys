@@ -31,7 +31,7 @@ TurnResult Controller::turn_controller(
     return TurnResult{output_velocity, local_angle_error};
 }
 
-geometry_msgs::msg::Twist Controller::PD_controller(const Stamped3DVector& current_position, 
+geometry_msgs::msg::Twist Controller::dd_PD_controller(const Stamped3DVector& current_position, 
         Eigen::Vector3d& current_angle,
         Stamped3DVector&  target_position,
         double sample_time,
@@ -65,8 +65,8 @@ geometry_msgs::msg::Twist Controller::PD_controller(const Stamped3DVector& curre
 
     // PD output
     geometry_msgs::msg::Twist output_velocity;
-    output_velocity.linear.x = 1.0 * local_error.x() + 0.1 * position_error_x_d;
-    output_velocity.angular.z = 1.0 * local_angle_error + 0.1 * local_angle_error_d;
+    output_velocity.linear.x = pd_gains.kp * local_error.x() + pd_gains.kd * position_error_x_d;
+    output_velocity.angular.z = pd_gains.kp * local_angle_error + pd_gains.kd * local_angle_error_d;
     
     // Save error for next tick
     previous_position_error.X.error = local_error.x();
@@ -87,6 +87,10 @@ bool Controller::simple_distance_test(const Stamped3DVector& current_position, c
     return distance < 0.05; // Example threshold
 }
 
-float Controller::euclidean_distance(const Stamped3DVector& current_position, const Stamped3DVector& target_position) {
+double Controller::euclidean_distance(const Stamped3DVector& current_position, const Stamped3DVector& target_position) {
     return (target_position.vector() - current_position.vector()).norm();
+}
+
+void Controller::setGains(const PIDControllerGains& gains) {
+    pd_gains = gains;
 }

@@ -54,6 +54,11 @@ ament_target_dependencies(lab_chassis
 install(TARGETS lab_chassis
   DESTINATION lib/${PROJECT_NAME}
 )
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+  FILES_MATCHING PATTERN "*.yaml"
+)
 
 
 

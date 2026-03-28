@@ -35,4 +35,5 @@ To make the robot move:
 ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.5}, angular: {z: 0.0}}"
 
-ros2 action send_goal /base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [45.0, 0.0, 0.0]}"
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
+
