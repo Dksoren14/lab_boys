@@ -1,5 +1,5 @@
 /lab_base/chassis/**:
   ros__parameters:
     controller:
-      kp: 121.0
-      kd: 0.1121
+      kp: 0.5
+      kd: 0.5
