@@ -34,7 +34,7 @@
           <!-- PBR for Ignition, material scripts for gazebo classic-->
           <pbr>
             <metal>
-              <albedo_map>model://Table/Table_Diffuse.jpg</albedo_map>
+              <albedo_map>model://table/Table_Diffuse.jpg</albedo_map>
             </metal>
           </pbr>
         </material>

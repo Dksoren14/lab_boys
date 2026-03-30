@@ -16,7 +16,14 @@
     <include>
       <uri>model://table</uri>
       <pose>1 0 0 0 0 0</pose>
+      <name>table1</name>
     </include> 
-    
+
+    <include>
+      <uri>model://table</uri>
+      <pose>0.65 1.15 0 0 0 1.57</pose>
+      <name>table2</name>
+    </include>
+
   </world>
 </sdf>
