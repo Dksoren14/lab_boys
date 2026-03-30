@@ -6,12 +6,13 @@ import os
 def generate_launch_description():
     pkg_path = get_package_share_directory('claus_gazebo')
     world = os.path.join(pkg_path, 'worlds', 'sim_environment.world')
-    models = os.path.join(pkg_path, 'models')
+
+    source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
 
     return LaunchDescription([
         SetEnvironmentVariable(
             name='GZ_SIM_RESOURCE_PATH',
-            value=models
+            value=source_models
         ),
         ExecuteProcess(
             cmd=['gz', 'sim', world],
