@@ -15,15 +15,111 @@
     <!-- Table -->
     <include>
       <uri>model://table</uri>
-      <pose>1 0 0 0 0 0</pose>
+      <pose>0 -1.575 0 0 0 0</pose>
       <name>table1</name>
     </include> 
 
     <include>
       <uri>model://table</uri>
-      <pose>0.65 1.15 0 0 0 1.57</pose>
+      <pose>0 1.575 0 0 0 0</pose>
       <name>table2</name>
     </include>
+
+    <model name="wall1">
+      <pose>1.54 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>4.95 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>4.95 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall2">
+      <pose>-4.595 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>4.95 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>4.95 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall3">
+      <pose>-1.5425 2.225 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>6.6 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>6.6 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall4">
+      <pose>-1.5425 -2.225 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>6.6 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>6.6 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
 
   </world>
 </sdf>

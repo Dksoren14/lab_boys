@@ -6,7 +6,7 @@
         <pose>0 0 1.0 0 0 0</pose>
         <geometry>
           <box>
-            <size>1.5 0.8 0.03</size>
+            <size>2.39 0.8 0.05</size>
           </box>
         </geometry>
         <surface>
@@ -22,7 +22,7 @@
         <pose>0 0 1.0 0 0 0</pose>
         <geometry>
           <box>
-            <size>1.5 0.8 0.03</size>
+            <size>2.39 0.8 0.05</size>
           </box>
         </geometry>
         <material>
