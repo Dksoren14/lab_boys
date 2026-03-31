@@ -8,3 +8,8 @@ install(DIRECTORY launch meshes urdf
 )
 
 ament_package()
+
+install(
+  DIRECTORY meshes urdf
+  DESTINATION share/clearpath_platform_description
+)

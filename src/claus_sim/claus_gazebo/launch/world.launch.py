@@ -18,7 +18,7 @@ def generate_launch_description():
     # Models path (portable, no ~/ stuff)
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
 
-    clearpath_path = os.path.expanduser("~/lab_boys/src/clearpath_common/clearpath_platform_description")
+    clearpath_path = os.path.expanduser("~/lab_boys/src/clearpath_common")
 
     print(clearpath_path)
 
