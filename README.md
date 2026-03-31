@@ -42,3 +42,6 @@ cd setup
 chmod +x setup.sh
 ./setup.sh
 ```
+
+tilføj sudo apt update
+sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
