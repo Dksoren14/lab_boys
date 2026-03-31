@@ -29,3 +29,4 @@ install(
 	DIRECTORY launch worlds
 	DESTINATION share/claus_gazebo
 )
+
