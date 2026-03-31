@@ -1,0 +1,14 @@
+# Goal definition
+string command        # "goto", "stop"
+float64[] target_pose   # [x, y], used if command_type is "goto"
+
+
+---
+# Result definition
+bool success
+string message
+
+---
+# Feedback definition
+float64[] current_pose  # [x, y, z]
+

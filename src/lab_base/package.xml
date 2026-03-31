@@ -13,6 +13,7 @@
   <depend>rclcpp_action</depend>
   <depend>ament_index_cpp</depend>
   <depend>interfaces</depend>
+  <depend>nav_msgs</depend>
 
   <!-- System dependencies -->
   <exec_depend>libglfw3</exec_depend>

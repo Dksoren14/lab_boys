@@ -29,3 +29,16 @@ Move on to step 4, else contact nearest adult.
 git switch development
 ```
 
+
+To make the robot move:
+
+ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.5}, angular: {z: 0.0}}"
+
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
+
+```
+cd setup
+chmod +x setup.sh
+./setup.sh
+```

@@ -11,14 +11,15 @@ import os
 
 def generate_launch_description():
     manipulator_pkg = FindPackageShare('lab_manipulator')
-    params_path = PathJoinSubstitution([manipulator_pkg, 'config', 'manipulator_params.yaml'])
+    lab_base_pkg = FindPackageShare('lab_base')
     world_path = PathJoinSubstitution([manipulator_pkg, 'worlds', 'world.sdf'])
     chassis_path = PathJoinSubstitution([manipulator_pkg, 'urdf', 'chassis.urdf'])
     clearpath_path = FindPackageShare('clearpath_platform_description').find('clearpath_platform_description')
     pkg_prefix = get_package_prefix("clearpath_platform_description")
     resource_path = os.path.join(pkg_prefix, "share")
-    #lab_self_path = "/home/dksoren/sdl_ros1_src/tudm02_ridgeback/tudm02_description/urdf/tudm02_description.urdf.xacro"
-
+    params_path = PathJoinSubstitution([lab_base_pkg, 'config', 'setup_sim.yaml'])
+    lab_self_path = "/home/dksoren/sdl_ros1_src/tudm02_ridgeback/tudm02_description/urdf/tudm02_description.urdf.xacro"
+ 
     
     xacro_file = PathJoinSubstitution([
         FindPackageShare("lab_manipulator"),
@@ -40,7 +41,7 @@ def generate_launch_description():
 
     gazebo = ExecuteProcess(
         cmd=[
-            'gz', 'sim', world_path],
+            'gz', 'sim', world_path, '-r'],
         output='screen'
     )
 
@@ -100,12 +101,31 @@ def generate_launch_description():
         executable='lab_arm',
         output='screen'
     )
+    
+
+    # Node to turn on the base controller
+    lab_base_node = Node(
+        package= 'lab_base',
+        executable='lab_chassis',
+        name='chassis',
+        namespace='lab_base/chassis', # Important for the parameter loading, as the controller node is in the lab_base/chassis namespace, the parameters have to be in that namespace as well
+        parameters=[params_path],
+        output='screen'
+    )
+
     gazebo_topic = Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
-            arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',],
+            arguments=['/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/model/r100/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            '/world/car_world/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',],
             output='screen'
         )
+
+    lab_base_delayed = TimerAction(
+        period=5.0,
+        actions=[lab_base_node]
+    )
     
     return LaunchDescription([
         set_gz_resources,
@@ -114,5 +134,6 @@ def generate_launch_description():
         spawn_robot_delayed,
         #spawn_entity,
         lab_manipulator_node,
+        lab_base_delayed,
         gazebo_topic
     ])
