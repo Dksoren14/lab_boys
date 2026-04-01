@@ -16,6 +16,10 @@ struct PIDControllerGains {
     double kp;
     double kd;
 };
+struct TargetDistance {
+    double angular;
+    double linear;
+};
 
 class Controller{
 public:

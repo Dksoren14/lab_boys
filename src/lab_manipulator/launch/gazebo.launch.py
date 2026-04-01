@@ -110,6 +110,7 @@ def generate_launch_description():
         name='chassis',
         namespace='lab_base/chassis', # Important for the parameter loading, as the controller node is in the lab_base/chassis namespace, the parameters have to be in that namespace as well
         parameters=[params_path],
+        remappings=[('/lab_base/chassis/lab_boys/out/base_state', '/lab_boys/out/base_state')],
         output='screen'
     )
 

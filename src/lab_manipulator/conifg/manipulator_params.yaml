@@ -1,4 +1,0 @@
-ros__parameters:
-  controller:
-    kp: 21.0
-    kd: 0.201

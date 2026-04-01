@@ -12,7 +12,7 @@
 #include <rcutils/logging.h>
 
 // Include message types
-#include "interfaces/msg/socket_msg.hpp"
+#include "interfaces/msg/base_state.hpp"
 #include "interfaces/action/base_command.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
@@ -37,15 +37,20 @@ public:
     controller(state_manager)
     {
         std::cout << "LabBaseNode initialized" << std::endl;
-        PIDControllerGains pid_gains;
+
         this->declare_parameter<double>("controller.kp", 1.0);
         this->declare_parameter<double>("controller.kd", 0.1);
+        this->declare_parameter<double>("target_distance.angular", 0.01);
+        this->declare_parameter<double>("target_distance.linear", 0.01);
 
         pid_gains.kp = this->get_parameter("controller.kp").as_double();
         pid_gains.kd = this->get_parameter("controller.kd").as_double();
+        accepted_distance.angular = this->get_parameter("target_distance.angular").as_double();
+        accepted_distance.linear = this->get_parameter("target_distance.linear").as_double();
+
 
         std::cout << "Controller gains: kp=" << pid_gains.kp << ", kd=" << pid_gains.kd << std::endl;
-
+        std::cout << "Target distances: angular=" << accepted_distance.angular << ", linear=" << accepted_distance.linear << std::endl;
         std::cout << R"(
 
                                /T /I                       
@@ -88,16 +93,7 @@ public:
         qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
         qos.durability(rclcpp::DurabilityPolicy::Volatile);
 
-
         // --- Subscriptions ---
-      //  local_position_sub = this->create_subscription<nav_msgs::msg::Odometry>(
-      //      "/model/r100/odometry",
-      //      qos,
-      //      [this](const nav_msgs::msg::Odometry::SharedPtr msg){
-      //          local_callback(msg);
-      //      }
-      //  );
-
         base_global_position_sub = this->create_subscription<geometry_msgs::msg::PoseArray>(
             "/world/car_world/dynamic_pose/info",
             qos,
@@ -110,6 +106,9 @@ public:
         // --- Publishers ---
         cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>(
         "/model/r100/cmd_vel", 10);
+
+        base_state_pub = this->create_publisher<interfaces::msg::BaseState>(
+            "lab_boys/out/base_state", 10);
 
         // -- Action server ---
         base_command_server = rclcpp_action::create_server<BaseCommandAction>(
@@ -125,6 +124,9 @@ public:
             }
 
         );
+
+        // --- Timers ---
+        base_state_timer = create_wall_timer(20ms, [this](){ publish_base_state(); });
     }
 
 
@@ -132,7 +134,8 @@ private:
     StateManager state_manager;
     Controller controller;
     Transformation transformation;
-
+    PIDControllerGains pid_gains;
+    TargetDistance accepted_distance;
     rclcpp::TimerBase::SharedPtr control_timer;
     PositionError previous_position_error;
     PositionError previous_angle_error;
@@ -140,10 +143,11 @@ private:
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr base_global_position_sub;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub;  
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub; 
+    rclcpp::Publisher<interfaces::msg::BaseState>::SharedPtr base_state_pub;
     rclcpp::Time last_time;
+    rclcpp::TimerBase::SharedPtr base_state_timer;
     bool reached_target_angle = false;
-
 
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
 
@@ -179,9 +183,22 @@ private:
 
     }
 
+    void publish_base_state()
+    {
+        interfaces::msg::BaseState msg;
+        Eigen::Quaterniond global_orientation = state_manager.getGlobalBaseOrientation();
+        Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(global_orientation);
+        msg.timestamp = this->now().seconds();
+        msg.orientation = {
+            euler_angles.x(),
+            euler_angles.y(),
+            euler_angles.z()
+        };
+        
+        base_state_pub->publish(msg);
+    }
 
-
-     //Just to test, will be removed later (maybe)
+    //Just to test, will be removed later (maybe)
     void test_position(){
         Stamped3DVector local_position = state_manager.getLocalPosition();
         RCLCPP_INFO(this->get_logger(), "Current local position: x=%.2f, y=%.2f, z=%.2f", local_position.x(), local_position.y(), local_position.z());
@@ -326,7 +343,7 @@ private:
                     previous_angle_error);
                     
                 cmd_vel_pub->publish(cmd_vel_angular.cmd);
-                if (std::abs(cmd_vel_angular.angle_error) < 0.04) {
+                if (std::abs(cmd_vel_angular.angle_error) < accepted_distance.angular){
                     std::cout << "Target angle reached, switching to linear control" << std::endl;
                     reached_target_angle = true;
                     previous_position_error.X.error = 0.0; // Reset position error for linear control
@@ -345,7 +362,7 @@ private:
                 );
                 cmd_vel_pub->publish(cmd_vel);
                 std::cout << "How close to target: " << controller.euclidean_distance(current_position, target_position) << std::endl;
-                if(controller.euclidean_distance(current_position, target_position) < 0.03){
+                if(controller.euclidean_distance(current_position, target_position) < accepted_distance.linear){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
                     cmd_vel.linear.x = 0.0;
                     cmd_vel.angular.z = 0.0;
