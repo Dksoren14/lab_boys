@@ -20,7 +20,6 @@ def generate_launch_description():
 
     clearpath_path = os.path.expanduser("~/lab_boys/src/clearpath_common")
 
-    print(clearpath_path)
 
     resource_paths = ":".join([source_models, clearpath_path])
 
@@ -37,6 +36,16 @@ def generate_launch_description():
         xacro_file,
         " platform_config:=generic"
     ])
+
+    set_gz_resources = SetEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH',
+            value=resource_paths
+        )
+    
+    gazebo_world =  ExecuteProcess(
+            cmd=['gz', 'sim', world, '-r'],
+            output='screen'
+        )
 
     # Publish robot
     robot_state_publisher = Node(
@@ -60,26 +69,14 @@ def generate_launch_description():
         output='screen'
     )
 
-    return LaunchDescription([
-
-        # Let Gazebo find your models
-        SetEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH',
-            value=resource_paths
-        ),
-
-        # Start Gazebo with your world
-        ExecuteProcess(
-            cmd=['gz', 'sim', world],
-            output='screen'
-        ),
-
-        # Start robot_state_publisher FIRST
-        robot_state_publisher,
-
-        # Delay spawn to avoid race condition
-        TimerAction(
+    spawn_robot_delayed = TimerAction(
             period=2.0,
             actions=[spawn_robot]
-        ),
+        )
+
+    return LaunchDescription([
+        set_gz_resources,
+        gazebo_world,
+        robot_state_publisher,
+        spawn_robot_delayed
     ])
