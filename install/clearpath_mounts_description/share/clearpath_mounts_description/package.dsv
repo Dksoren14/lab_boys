@@ -1,0 +1,8 @@
+source;share/clearpath_mounts_description/hook/cmake_prefix_path.ps1
+source;share/clearpath_mounts_description/hook/cmake_prefix_path.dsv
+source;share/clearpath_mounts_description/hook/cmake_prefix_path.sh
+source;share/clearpath_mounts_description/local_setup.bash
+source;share/clearpath_mounts_description/local_setup.dsv
+source;share/clearpath_mounts_description/local_setup.ps1
+source;share/clearpath_mounts_description/local_setup.sh
+source;share/clearpath_mounts_description/local_setup.zsh

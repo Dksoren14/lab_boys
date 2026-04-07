@@ -46,7 +46,7 @@ Har ikke gjort noget iforhold til korrekt bevægelse indtil videre, så tror leg
 4. Når jeg spawner robotten og køre "ros2 topic list" får vi ingen der hedder '/scan' 
 hvilket vil sige at der enten ikke er en lidar i urdf'en, eller at den ikke virker korrekt
 
-Ja hvis jeg ikke har bidged det vil det ikke komme som ros2 topic endnu. For at se hvad du får fra den direkte robot, hedder det:
+Ja hvis jeg ikke har bridged det vil det ikke komme som ros2 topic endnu. For at se hvad du får fra den direkte robot, hedder det:
 gz topic -l
 og så for at se hvad de spytter ud:
 gz topic -e -t <topic navnet>
