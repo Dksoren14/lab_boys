@@ -45,3 +45,4 @@ chmod +x setup.sh
 
 tilføj sudo apt update
 sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
+pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
