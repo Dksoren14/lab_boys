@@ -60,8 +60,7 @@ def get_config():
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
         "marker_ids": [20, 21, 22, 23, 24, 25, 26, 27, 28],
         "marker_size": 800,
-        "marker_size_IRL": 0.162
-    }
+        "marker_size_IRL": 0.25    }
 
 def detect_markers(config):
     aruco_dict = cv2.aruco.getPredefinedDictionary(config["aruco_dict_type"])
@@ -126,9 +125,6 @@ def detect_markers(config):
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
 
-                        print("Transformation matrix:")
-                        print(T_cam_marker)
-
 
 
 
@@ -152,6 +148,28 @@ def detect_markers(config):
         cv2.destroyAllWindows()
 
 
+def matrix_transformation(T_cam_marker, g_pose, g_orientation):
+    R_world_marker = np.array([
+        [np.cos(g_orientation), -np.sin(g_orientation), 0],
+        [np.sin(g_orientation), np.cos(g_orientation), 0],
+        [0, 0, 1]
+    ], dtype=np.float32)
+
+    T_world_marker = np.eye(4, dtype=np.float32)
+    T_world_marker[:3, :3] = R_world_marker
+    T_world_marker[:3, 3] = g_pose
+
+    T_cam_world = np.linalg.inv(T_world_marker) @ T_cam_marker
+
+    print("Camera to World Transformation:")
+    print(T_cam_world)
+
+    return T_cam_world
+
+
+
+
+
 def start_ros(node):
         try:
             rclpy.spin(node)
@@ -173,6 +191,7 @@ def main(args=None):
     Thread(target=start_ros, args=(node,), daemon=True).start()
     config = get_config()
     detect_markers(config)
+    matrix_transformation(config)
 
 
 if __name__ == "__main__":
