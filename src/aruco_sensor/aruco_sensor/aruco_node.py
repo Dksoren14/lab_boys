@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from threading import Thread
 
 import rclpy
@@ -10,12 +9,13 @@ import pyrealsense2 as rs
 import numpy as np
 
 
-
-
 class ArucoSenorNode(Node):
 
     def __init__(self):
         super().__init__('claus_aruco_sensor')
+        self.g_pose = [0.0, 0.0, 0.0]
+        self.g_orientation = 0.0
+
         qos = rclpy.qos.QoSProfile(
             depth=10,
             reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
@@ -38,16 +38,9 @@ class ArucoSenorNode(Node):
             qos
         )
 
-    g_pose = [0.0, 0.0, 0.0]
-    g_orientation = 0.0
 
     def global_callback(self, msg):
         self.g_pose = [msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
-
-
-
-        
-
 
     def orientation_callback(self, msg):
         self.g_orientation = msg.orientation[2]
@@ -62,7 +55,7 @@ def get_config():
         "marker_size": 800,
         "marker_size_IRL": 0.25    }
 
-def detect_markers(config):
+def detect_markers(config, node):
     aruco_dict = cv2.aruco.getPredefinedDictionary(config["aruco_dict_type"])
     detector_params = cv2.aruco.DetectorParameters_create()
 
@@ -106,7 +99,6 @@ def detect_markers(config):
                 cv2.aruco.drawDetectedMarkers(frame, corners)
 
                 for i in range(len(ids)):
-                    marker_id = ids[i][0]
                     corner_points = corners[i][0]
                     image_points = np.array(corner_points, dtype=np.float32)
 
@@ -124,21 +116,13 @@ def detect_markers(config):
                         T_cam_marker = np.eye(4, dtype=np.float32)
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
-
-
-
+                        matrix_transformation(T_cam_marker, node.g_pose, node.g_orientation)
 
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
 
-
-
                     cv2.circle(frame, (center_x, center_y), 3, (0, 0, 255), -1)
-                    coo = f"({center_x}x, {center_y}y)"
-                    Marker_ID = f"ID {marker_id}"
 
-                    cv2.putText(frame, coo,(center_x + 10, center_y - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5,(0, 255, 0), 2, cv2.LINE_AA)
-                    cv2.putText(frame, Marker_ID, (center_x + 10, center_y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255, 255, 0), 2, cv2.LINE_AA)
             cv2.imshow("ArUco Marker", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -147,27 +131,30 @@ def detect_markers(config):
         pipe.stop()
         cv2.destroyAllWindows()
 
-
 def matrix_transformation(T_cam_marker, g_pose, g_orientation):
-    R_world_marker = np.array([
+    # Base pose in world
+    R_world_base = np.array([
         [np.cos(g_orientation), -np.sin(g_orientation), 0],
-        [np.sin(g_orientation), np.cos(g_orientation), 0],
+        [np.sin(g_orientation),  np.cos(g_orientation), 0],
         [0, 0, 1]
     ], dtype=np.float32)
 
-    T_world_marker = np.eye(4, dtype=np.float32)
-    T_world_marker[:3, :3] = R_world_marker
-    T_world_marker[:3, 3] = g_pose
+    T_world_base = np.eye(4, dtype=np.float32)
+    T_world_base[:3, :3] = R_world_base
+    T_world_base[:3, 3] = g_pose
 
-    T_cam_world = np.linalg.inv(T_world_marker) @ T_cam_marker
+    # Camera pose in base
+    # THESE VALUES ARE PLACEHOLDERS - replace with your real camera mount
+    T_base_cam = np.eye(4, dtype=np.float32)
+    T_base_cam[:3, 3] = [0.20, 0.0, 0.35]
 
-    print("Camera to World Transformation:")
-    print(T_cam_world)
+    # Final transform: marker -> camera -> base -> world
+    T_world_marker = T_world_base @ T_base_cam @ T_cam_marker
 
-    return T_cam_world
+    print("T_world_marker:")
+    print(T_world_marker)
 
-
-
+    return T_world_marker
 
 
 def start_ros(node):
@@ -182,16 +169,12 @@ def start_ros(node):
             rclpy.shutdown()
 
 
-
-
-
 def main(args=None):
     rclpy.init(args=args)
     node = ArucoSenorNode()
     Thread(target=start_ros, args=(node,), daemon=True).start()
     config = get_config()
-    detect_markers(config)
-    matrix_transformation(config)
+    detect_markers(config, node)
 
 
 if __name__ == "__main__":
