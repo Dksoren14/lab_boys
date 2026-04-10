@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
+from threading import Thread
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseArray
+from interfaces.msg import BaseState
 import cv2
 import pyrealsense2 as rs
 import numpy as np
+
+
+
 
 class ArucoSenorNode(Node):
 
@@ -25,15 +31,27 @@ class ArucoSenorNode(Node):
             qos
         )
 
+        self.base_global_orientation_sub = self.create_subscription(
+            BaseState,
+            '/lab_boys/out/base_state',
+            self.orientation_callback,
+            qos
+        )
+
+    g_pose = [0.0, 0.0, 0.0]
+    g_orientation = 0.0
 
     def global_callback(self, msg):
-        g_pose =[msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
+        self.g_pose = [msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
 
 
 
+        
 
 
-
+    def orientation_callback(self, msg):
+        self.g_orientation = msg.orientation[2]
+        
 def get_config():
     return {
         "res_x": 1280,
@@ -133,6 +151,29 @@ def detect_markers(config):
         pipe.stop()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
+
+def start_ros(node):
+        try:
+            rclpy.spin(node)
+
+        except KeyboardInterrupt:
+            node.get_logger().info('Node interrupted by user')
+        finally:
+
+            node.shutdown_node()
+            rclpy.shutdown()
+
+
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = ArucoSenorNode()
+    Thread(target=start_ros, args=(node,), daemon=True).start()
     config = get_config()
     detect_markers(config)
+
+
+if __name__ == "__main__":
+    main()
