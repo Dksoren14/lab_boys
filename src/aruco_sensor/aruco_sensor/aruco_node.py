@@ -2,7 +2,7 @@ from threading import Thread
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseArray, Point
+from geometry_msgs.msg import PoseArray, Pose
 from interfaces.msg import BaseState
 import cv2
 import pyrealsense2 as rs
@@ -38,7 +38,7 @@ class ArucoSenorNode(Node):
             qos
         )
 
-        self.marker_pub = self.create_publisher(Point, '/aruco_marker_position', 10)
+        self.marker_pub = self.create_publisher(Pose, '/aruco_marker_pose', 10)
         
 
 
@@ -49,12 +49,21 @@ class ArucoSenorNode(Node):
     def orientation_callback(self, msg):
         self.g_orientation = msg.orientation[2]
     
-    def publish_marker_position(self, position):
-        point_msg = Point()
-        point_msg.x = float(position[0])
-        point_msg.y = float(position[1])
-        point_msg.z = float(position[2])
-        self.marker_pub.publish(point_msg)
+    def publish_marker_pose(self, T_world_marker):
+        pose_msg = Pose()
+        pose_msg.position.x = float(T_world_marker[0, 3])
+        pose_msg.position.y = float(T_world_marker[1, 3])
+        pose_msg.position.z = float(T_world_marker[2, 3])
+
+        R = T_world_marker[:3, :3]
+        qx, qy, qz, qw = rotation_matrix_to_quaternion(R)
+
+        pose_msg.orientation.x = float(qx)
+        pose_msg.orientation.y = float(qy)
+        pose_msg.orientation.z = float(qz)
+        pose_msg.orientation.w = float(qw)
+
+        self.marker_pub.publish(pose_msg)
         
 def get_config():
     return {
@@ -125,8 +134,7 @@ def detect_markers(config, node):
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
                         T_world_marker = matrix_transformation(T_cam_marker, node.g_pose, node.g_orientation)
-                        pos = T_world_marker[:3, 3]
-                        node.publish_marker_position(pos) 
+                        node.publish_marker_pose(T_world_marker)
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
 
@@ -162,6 +170,35 @@ def matrix_transformation(T_cam_marker, g_pose, g_orientation):
 
     return T_world_marker
 
+def rotation_matrix_to_quaternion(R):
+    trace = R[0, 0] + R[1, 1] + R[2, 2]
+
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        qw = 0.25 / s
+        qx = (R[2, 1] - R[1, 2]) * s
+        qy = (R[0, 2] - R[2, 0]) * s
+        qz = (R[1, 0] - R[0, 1]) * s
+    elif R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+        qw = (R[2, 1] - R[1, 2]) / s
+        qx = 0.25 * s
+        qy = (R[0, 1] + R[1, 0]) / s
+        qz = (R[0, 2] + R[2, 0]) / s
+    elif R[1, 1] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+        qw = (R[0, 2] - R[2, 0]) / s
+        qx = (R[0, 1] + R[1, 0]) / s
+        qy = 0.25 * s
+        qz = (R[1, 2] + R[2, 1]) / s
+    else:
+        s = 2.0 * np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+        qw = (R[1, 0] - R[0, 1]) / s
+        qx = (R[0, 2] + R[2, 0]) / s
+        qy = (R[1, 2] + R[2, 1]) / s
+        qz = 0.25 * s
+
+    return qx, qy, qz, qw
 
 def start_ros(node):
         try:
