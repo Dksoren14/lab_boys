@@ -2,7 +2,7 @@ from threading import Thread
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PoseArray, Point
 from interfaces.msg import BaseState
 import cv2
 import pyrealsense2 as rs
@@ -38,12 +38,23 @@ class ArucoSenorNode(Node):
             qos
         )
 
+        self.marker_pub = self.create_publisher(Point, '/aruco_marker_position', 10)
+        
+
+
 
     def global_callback(self, msg):
         self.g_pose = [msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
 
     def orientation_callback(self, msg):
         self.g_orientation = msg.orientation[2]
+    
+    def publish_marker_position(self, position):
+        point_msg = Point()
+        point_msg.x = float(position[0])
+        point_msg.y = float(position[1])
+        point_msg.z = float(position[2])
+        self.marker_pub.publish(point_msg)
         
 def get_config():
     return {
@@ -51,7 +62,6 @@ def get_config():
         "res_y": 720,
         "fps": 30,
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
-        "marker_ids": [20, 21, 22, 23, 24, 25, 26, 27, 28],
         "marker_size": 800,
         "marker_size_IRL": 0.25    }
 
@@ -85,8 +95,6 @@ def detect_markers(config, node):
         [-half_len, -half_len, 0]
     ], dtype=np.float32)
 
-    print("Object points:")
-    print(object_points)
     try:
         while True:
             frames = pipe.wait_for_frames()
@@ -116,8 +124,9 @@ def detect_markers(config, node):
                         T_cam_marker = np.eye(4, dtype=np.float32)
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
-                        matrix_transformation(T_cam_marker, node.g_pose, node.g_orientation)
-
+                        T_world_marker = matrix_transformation(T_cam_marker, node.g_pose, node.g_orientation)
+                        pos = T_world_marker[:3, 3]
+                        node.publish_marker_position(pos) 
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
 
@@ -132,7 +141,6 @@ def detect_markers(config, node):
         cv2.destroyAllWindows()
 
 def matrix_transformation(T_cam_marker, g_pose, g_orientation):
-    # Base pose in world
     R_world_base = np.array([
         [np.cos(g_orientation), -np.sin(g_orientation), 0],
         [np.sin(g_orientation),  np.cos(g_orientation), 0],
@@ -144,15 +152,13 @@ def matrix_transformation(T_cam_marker, g_pose, g_orientation):
     T_world_base[:3, 3] = g_pose
 
     # Camera pose in base
-    # THESE VALUES ARE PLACEHOLDERS - replace with your real camera mount
+    # THESE VALUES ARE PLACEHOLDERS
     T_base_cam = np.eye(4, dtype=np.float32)
     T_base_cam[:3, 3] = [0.20, 0.0, 0.35]
 
-    # Final transform: marker -> camera -> base -> world
     T_world_marker = T_world_base @ T_base_cam @ T_cam_marker
 
-    print("T_world_marker:")
-    print(T_world_marker)
+    
 
     return T_world_marker
 
