@@ -17,11 +17,13 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
+#include "nav2_msgs/action/compute_path_to_pose.hpp"
 
 // Include own headers
 #include "state_manager.h"
 #include "controller.h"
 #include "transformation.h"
+#include "path_planner.h"
 
 using namespace std;
 
@@ -31,6 +33,7 @@ class LabBaseNode : public rclcpp::Node
 public:
     using BaseCommandAction = interfaces::action::BaseCommand;
     using GoalHandleBaseCommand = rclcpp_action::ServerGoalHandle<BaseCommandAction>;
+    using ComputePathToPose = nav2_msgs::action::ComputePathToPose;
     LabBaseNode() 
     : Node("lab_base_node"),
     state_manager(),
@@ -125,8 +128,14 @@ public:
 
         );
 
+        // -- Action client ---
+        path_client = rclcpp_action::create_client<nav2_msgs::action::ComputePathToPose>(
+            this,
+            "/compute_path_to_pose");
+
         // --- Timers ---
         base_state_timer = create_wall_timer(20ms, [this](){ publish_base_state(); });
+        path_timer = create_wall_timer(1s, [this](){ replan(); });
     }
 
 
@@ -147,25 +156,81 @@ private:
     rclcpp::Publisher<interfaces::msg::BaseState>::SharedPtr base_state_pub;
     rclcpp::Time last_time;
     rclcpp::TimerBase::SharedPtr base_state_timer;
+    rclcpp::TimerBase::SharedPtr path_timer;
     bool reached_target_angle = false;
+    int current_waypoint_idx_ = 0;
 
     rclcpp_action::Server<BaseCommandAction>::SharedPtr base_command_server;
+    rclcpp_action::Client<ComputePathToPose>::SharedPtr path_client;
+    nav2_msgs::action::ComputePathToPose::Goal goal_msg;
+    std::vector<geometry_msgs::msg::PoseStamped> path_;
 
     int control_mode = 0; // 0: idle, 1: goto, 2: stop
 
-    void local_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+    void replan()
     {
-        Stamped3DVector local_position = Stamped3DVector(msg->header.stamp, msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
-        state_manager.setLocalPosition(local_position);
+       if (!path_client->wait_for_action_server(std::chrono::seconds(5)))
+        {
+            RCLCPP_WARN(this->get_logger(), "Planner not available");
+            return;
+        }
+        auto q = state_manager.getGlobalBaseOrientation();
+        ComputePathToPose::Goal goal_msg;
+        goal_msg.start.header.frame_id = "map";
+        goal_msg.goal.header.frame_id  = "map";
+        goal_msg.start.header.stamp = state_manager.getGlobalBasePosition().timestamp;
+        goal_msg.goal.header.stamp = state_manager.getTargetPosition().timestamp;
+        goal_msg.start.pose.position.x = state_manager.getGlobalBasePosition().x();
+        goal_msg.start.pose.position.y = state_manager.getGlobalBasePosition().y();
+        goal_msg.start.pose.position.z = state_manager.getGlobalBasePosition().z();
+        goal_msg.start.pose.orientation.x = q.x();
+        goal_msg.start.pose.orientation.y = q.y();
+        goal_msg.start.pose.orientation.z = q.z();
+        goal_msg.start.pose.orientation.w = q.w();
+        
 
-        Stamped3DVector local_velocity = Stamped3DVector(msg->header.stamp, msg->twist.twist.linear.x, msg->twist.twist.linear.y, msg->twist.twist.linear.z);
-        state_manager.setLocalVelocity(local_velocity);
-        //RCLCPP_INFO(this->get_logger(), "StateManager address: %p", &state_manager);
-        //test_position();
+        goal_msg.goal.pose.position.x = state_manager.getTargetPosition().x();
+        goal_msg.goal.pose.position.y = state_manager.getTargetPosition().y();
+        goal_msg.goal.pose.position.z = state_manager.getTargetPosition().z();
+        goal_msg.goal.pose.orientation.x = 0.0;
+        goal_msg.goal.pose.orientation.y = 0.0;
+        goal_msg.goal.pose.orientation.z = 0.0;
+        goal_msg.goal.pose.orientation.w = 1.0;
 
+        goal_msg.use_start = true;
+
+        auto options =
+            rclcpp_action::Client<ComputePathToPose>::SendGoalOptions();
+
+        options.result_callback =
+            std::bind(&LabBaseNode::path_callback, this, std::placeholders::_1);
+
+        path_client->async_send_goal(goal_msg, options); 
+        }
+
+
+
+    //  --- Callbacks--
+    void path_callback(
+        const rclcpp_action::ClientGoalHandle<ComputePathToPose>::WrappedResult & result)
+    {
+        if (result.code != rclcpp_action::ResultCode::SUCCEEDED)
+        {
+            RCLCPP_WARN(this->get_logger(), "Path planning failed");
+            return;
+        }
+
+        auto path = result.result->path;
+
+        RCLCPP_INFO(this->get_logger(),
+                    "Received path with %ld poses",
+                    path.poses.size());
+
+        // Store it for your controller
+        path_ = path.poses;
     }
 
-        void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
+    void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
     {
         Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[0].position.x, msg->poses[0].position.y, msg->poses[0].position.z);
         Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[0].orientation.x, msg->poses[0].orientation.y, msg->poses[0].orientation.z); 
@@ -183,6 +248,18 @@ private:
 
     }
 
+    void local_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+    {
+        Stamped3DVector local_position = Stamped3DVector(msg->header.stamp, msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
+        state_manager.setLocalPosition(local_position);
+
+        Stamped3DVector local_velocity = Stamped3DVector(msg->header.stamp, msg->twist.twist.linear.x, msg->twist.twist.linear.y, msg->twist.twist.linear.z);
+        state_manager.setLocalVelocity(local_velocity);
+        
+
+    }
+    
+    // --- Publisher
     void publish_base_state()
     {
         interfaces::msg::BaseState msg;
@@ -198,12 +275,7 @@ private:
         base_state_pub->publish(msg);
     }
 
-    //Just to test, will be removed later (maybe)
-    void test_position(){
-        Stamped3DVector local_position = state_manager.getLocalPosition();
-        RCLCPP_INFO(this->get_logger(), "Current local position: x=%.2f, y=%.2f, z=%.2f", local_position.x(), local_position.y(), local_position.z());
-    }
-
+    
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const BaseCommandAction::Goal> goal)
     {
         static const std::vector<std::string> valid_commands = {"goto", "stop"};
@@ -352,6 +424,24 @@ private:
                 }
             }
             else{
+                 // Advance waypoint index if close enough to current target
+                while (current_waypoint_idx_ < (int)path_.size() - 1) {
+                    auto &wp = path_[current_waypoint_idx_];
+                    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
+                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.linear) {
+                        current_waypoint_idx_++;
+                    } else {
+                        break;
+                    }
+                }
+                auto &way_point = path_[current_waypoint_idx_];
+                target_position = Stamped3DVector(way_point.header.stamp, 
+                                                    way_point.pose.position.x, 
+                                                    way_point.pose.position.y, 
+                                                    way_point.pose.position.z);
+                state_manager.setTargetPosition(target_position);
+                }
+
                 geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
                     current_position,
                     euler_angles,
@@ -361,7 +451,7 @@ private:
                     previous_angle_error
                 );
                 cmd_vel_pub->publish(cmd_vel);
-                std::cout << "How close to target: " << controller.euclidean_distance(current_position, target_position) << std::endl;
+            
                 if(controller.euclidean_distance(current_position, target_position) < accepted_distance.linear){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
                     cmd_vel.linear.x = 0.0;
@@ -375,7 +465,7 @@ private:
                     result->success = true;
                     stop_control_loop();
                 }
-            }
+            
             
                 
             break;

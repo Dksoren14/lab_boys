@@ -17,7 +17,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(interfaces REQUIRED)
-find_package(nav_msgs REQUIRED)
+find_package(nav2_msgs REQUIRED)
 
 
 # Find OpenGL package
@@ -31,6 +31,7 @@ add_executable(lab_chassis
     src/state_manager.cpp
     src/controller.cpp
     src/transformation.cpp
+    src/path_planner.cpp
 )
 target_include_directories(lab_chassis PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -47,7 +48,7 @@ ament_target_dependencies(lab_chassis
   rclcpp_action
   std_msgs
   interfaces
-  nav_msgs
+  nav2_msgs
 )
 
 # Install the executable
@@ -57,7 +58,6 @@ install(TARGETS lab_chassis
 # Install config files
 install(DIRECTORY config/
   DESTINATION share/${PROJECT_NAME}/config
-  FILES_MATCHING PATTERN "*.yaml"
 )
 
 

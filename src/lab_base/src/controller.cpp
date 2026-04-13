@@ -52,7 +52,7 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller(const Stamped3DVector& cu
     Eigen::Vector3d local_error = transformation.global_to_local_error(current_position, global_error, current_angle);
     //std::cout << "Local error: x=" << local_error.x() << ", y=" << local_error.y() << std::endl;
 
-
+    
     while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
     while (local_angle_error < -M_PI) local_angle_error += 2.0 * M_PI;
 

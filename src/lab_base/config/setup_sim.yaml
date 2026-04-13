@@ -4,5 +4,5 @@
       kp: 0.5
       kd: 0.5
     target_distance:
-      angular: 0.04
+      angular: 0.1
       linear: 0.03
