@@ -3,6 +3,7 @@ from launch.actions import ExecuteProcess, SetEnvironmentVariable, TimerAction
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -27,14 +28,15 @@ def generate_launch_description():
     xacro_file = PathJoinSubstitution([
         FindPackageShare("claus_description"),
         "urdf",
-        "r100_wrapper.xacro"
+        "ridgeback.urdf.xacro"
     ])
 
     # Process Xacro → robot_description
     robot_description = Command([
         "xacro ",
         xacro_file,
-        " platform_config:=generic"
+        " ",
+        "platform_config:=generic"
     ])
 
     set_gz_resources = SetEnvironmentVariable(
@@ -47,12 +49,16 @@ def generate_launch_description():
             output='screen'
         )
 
-    # Publish robot
     robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}],
-        output='screen'
+    package='robot_state_publisher',
+    executable='robot_state_publisher',
+    parameters=[
+        {
+            'robot_description': ParameterValue(robot_description, value_type=str),
+            'use_sim_time': True
+        }
+    ],
+    output='screen'
     )
 
     # Spawn robot in Gazebo
@@ -80,3 +86,17 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_robot_delayed
     ])
+
+joint_state_broadcaster_spawner = Node(
+    package='controller_manager',
+    executable='spawner',
+    arguments=['joint_state_broadcaster'],
+    output='screen'
+)
+
+mecanum_controller_spawner = Node(
+    package='controller_manager',
+    executable='spawner',
+    arguments=['mecanum_controller'],
+    output='screen'
+)
