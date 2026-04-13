@@ -40,7 +40,7 @@ So far we only have the minimum for ros to work, so we can run a "hello world" s
 colcon build
 ```
 
-2. Source ros
+2. Source ros:
 ```
 source install/setup.bash
 ```
@@ -50,4 +50,20 @@ source install/setup.bash
 ros2 run lab_manipulator lab_arm
 ```
 
+### Launch Gazebo Simulation
+This opens Gazebo with a simulated environment of the lab, with the R100(Ridgeback)
 
+1. Build workspace (If the code has changed):
+```
+colcon build
+```
+
+2. Source ros:
+```
+source install/setup.bash
+```
+
+3. Use the launch script, to launch gazebo:
+```
+ros2 launch claus_gazebo world.launch.py
+```
