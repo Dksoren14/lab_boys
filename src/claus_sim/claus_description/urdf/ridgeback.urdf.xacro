@@ -332,19 +332,11 @@
 
 
 
-  <!-- Front lidar -->
   <xacro:simple_lidar
-    prefix="front"
-    parent_link="chassis_link"
-    location="1"
-    topic="scan"/>
-
-  <!-- Rear lidar -->
-  <xacro:simple_lidar
-    prefix="rear"
-    parent_link="chassis_link"
-    location="-1"
-    topic="rear/scan"/>
+  prefix="front"
+  parent_link="chassis_link"
+  location="1"
+  topic="/scan"/>
 
 
 </robot>

@@ -28,3 +28,17 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
+add_executable(odom_to_tf src/odom_to_tf.cpp)
+ament_target_dependencies(odom_to_tf
+  rclcpp
+  nav_msgs
+  geometry_msgs
+  tf2
+  tf2_ros
+)
+
+install(TARGETS
+  odom_to_tf
+  DESTINATION lib/${PROJECT_NAME}
+) 
