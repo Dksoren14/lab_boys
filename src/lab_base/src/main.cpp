@@ -41,19 +41,31 @@ public:
     {
         std::cout << "LabBaseNode initialized" << std::endl;
 
-        this->declare_parameter<double>("controller.kp", 1.0);
-        this->declare_parameter<double>("controller.kd", 0.1);
+        this->declare_parameter<double>("angular_controller.kp", 1.0);
+        this->declare_parameter<double>("angular_controller.kd", 0.1);
+        this->declare_parameter<double>("linear_controller.kp", 1.0);
+        this->declare_parameter<double>("linear_controller.kd", 0.1);
+        this->declare_parameter<double>("linear_precision_controller.kp", 1.0);
+        this->declare_parameter<double>("linear_precision_controller.kd", 0.5);
         this->declare_parameter<double>("target_distance.angular", 0.01);
-        this->declare_parameter<double>("target_distance.linear", 0.01);
+        this->declare_parameter<double>("target_distance.waypoint", 0.01);
+        this->declare_parameter<double>("goal_distance.threshold", 0.1);
 
-        pid_gains.kp = this->get_parameter("controller.kp").as_double();
-        pid_gains.kd = this->get_parameter("controller.kd").as_double();
+        pid_angular_gains.kp = this->get_parameter("angular_controller.kp").as_double();
+        pid_angular_gains.kd = this->get_parameter("angular_controller.kd").as_double();
+        pid_linear_gains.kp = this->get_parameter("linear_controller.kp").as_double();
+        pid_linear_gains.kd = this->get_parameter("linear_controller.kd").as_double();
+        pid_linear_precision_gains.kp = this->get_parameter("linear_precision_controller.kp").as_double();
+        pid_linear_precision_gains.kd = this->get_parameter("linear_precision_controller.kd").as_double();
         accepted_distance.angular = this->get_parameter("target_distance.angular").as_double();
-        accepted_distance.linear = this->get_parameter("target_distance.linear").as_double();
+        accepted_distance.waypoint = this->get_parameter("target_distance.waypoint").as_double();
+        goal_distance.threshold = this->get_parameter("goal_distance.threshold").as_double();
 
-
-        std::cout << "Controller gains: kp=" << pid_gains.kp << ", kd=" << pid_gains.kd << std::endl;
-        std::cout << "Target distances: angular=" << accepted_distance.angular << ", linear=" << accepted_distance.linear << std::endl;
+        std::cout << "Controller gains: kp=" << pid_angular_gains.kp << ", kd=" << pid_angular_gains.kd << std::endl;
+        std::cout << "Controller gains: kp=" << pid_linear_gains.kp << ", kd=" << pid_linear_gains.kd << std::endl;
+        std::cout << "Controller gains: kp=" << pid_linear_precision_gains.kp << ", kd=" << pid_linear_precision_gains.kd << std::endl;
+        std::cout << "Target distances: angular=" << accepted_distance.angular << ", waypoint=" << accepted_distance.waypoint << std::endl;
+        std::cout << "Goal distance: threshold=" << goal_distance.threshold << std::endl;
         std::cout << R"(
 
                                /T /I                       
@@ -90,7 +102,7 @@ public:
                  ~-<_(_.^-~"                            
 
 )" << std::endl;
-        controller.setGains(pid_gains);
+        controller.setGains(pid_linear_gains, pid_angular_gains, pid_linear_precision_gains);
         // --- Quality of Service settings for subscriptions ---
         rclcpp::QoS qos(10);
         qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
@@ -143,11 +155,15 @@ private:
     StateManager state_manager;
     Controller controller;
     Transformation transformation;
-    PIDControllerGains pid_gains;
+    PIDControllerGains pid_linear_gains;
+    PIDControllerGains pid_angular_gains;
+    PIDControllerGains pid_linear_precision_gains;
     TargetDistance accepted_distance;
+    GoalDistance goal_distance;
     rclcpp::TimerBase::SharedPtr control_timer;
     PositionError previous_position_error;
     PositionError previous_angle_error;
+    Stamped3DVector previous_position;
     std::shared_ptr<const BaseCommandAction::Goal> current_goal;
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
@@ -165,6 +181,10 @@ private:
     nav2_msgs::action::ComputePathToPose::Goal goal_msg;
     std::vector<geometry_msgs::msg::PoseStamped> path_;
 
+    Stamped3DVector goal_position;
+
+
+
     int control_mode = 0; // 0: idle, 1: goto, 2: stop
 
     void replan()
@@ -179,7 +199,7 @@ private:
         goal_msg.start.header.frame_id = "map";
         goal_msg.goal.header.frame_id  = "map";
         goal_msg.start.header.stamp = state_manager.getGlobalBasePosition().timestamp;
-        goal_msg.goal.header.stamp = state_manager.getTargetPosition().timestamp;
+        goal_msg.goal.header.stamp = state_manager.getGoalPosition().timestamp;
         goal_msg.start.pose.position.x = state_manager.getGlobalBasePosition().x();
         goal_msg.start.pose.position.y = state_manager.getGlobalBasePosition().y();
         goal_msg.start.pose.position.z = state_manager.getGlobalBasePosition().z();
@@ -189,9 +209,9 @@ private:
         goal_msg.start.pose.orientation.w = q.w();
         
 
-        goal_msg.goal.pose.position.x = state_manager.getTargetPosition().x();
-        goal_msg.goal.pose.position.y = state_manager.getTargetPosition().y();
-        goal_msg.goal.pose.position.z = state_manager.getTargetPosition().z();
+        goal_msg.goal.pose.position.x = state_manager.getGoalPosition().x();
+        goal_msg.goal.pose.position.y = state_manager.getGoalPosition().y();
+        goal_msg.goal.pose.position.z = state_manager.getGoalPosition().z();
         goal_msg.goal.pose.orientation.x = 0.0;
         goal_msg.goal.pose.orientation.y = 0.0;
         goal_msg.goal.pose.orientation.z = 0.0;
@@ -272,7 +292,21 @@ private:
             euler_angles.z()
         };
         
+        auto now = get_clock()->now();
+
+
+        if (last_time.nanoseconds() == 0) {
+            last_time = now;
+        }
+    
+        double d_time = (now - last_time).seconds();
+        last_time = now;
+
+        double current_velocity = transformation.velocity_vector(state_manager.getGlobalBasePosition(), previous_position, d_time);
+        msg.velocity_vector = current_velocity;
+
         base_state_pub->publish(msg);
+        
     }
 
     
@@ -357,6 +391,7 @@ private:
             goal->target_pose[1], 
             goal->target_pose[2]);
         state_manager.setTargetPosition(target_position);
+        state_manager.setGoalPosition(target_position);
 
         current_goal = goal;
         current_result = result;
@@ -393,6 +428,7 @@ private:
         Eigen::Quaterniond current_orientation = state_manager.getGlobalBaseOrientation();
         Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(current_orientation);
         Stamped3DVector target_position = state_manager.getTargetPosition();
+        Stamped3DVector goal_position = state_manager.getGoalPosition();
        
         switch (state_manager.getControlMode())
         {
@@ -401,12 +437,8 @@ private:
             break;
         case 1: // goto
             {
-
-
-            
             
             if(!reached_target_angle){
-                
                 TurnResult cmd_vel_angular = controller.turn_controller(
                     euler_angles, 
                     target_position,
@@ -424,11 +456,12 @@ private:
                 }
             }
             else{
-                 // Advance waypoint index if close enough to current target
+               
+                
                 while (current_waypoint_idx_ < (int)path_.size() - 1) {
                     auto &wp = path_[current_waypoint_idx_];
                     Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
-                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.linear) {
+                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
                         current_waypoint_idx_++;
                     } else {
                         break;
@@ -440,7 +473,6 @@ private:
                                                     way_point.pose.position.y, 
                                                     way_point.pose.position.z);
                 state_manager.setTargetPosition(target_position);
-                }
 
                 geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
                     current_position,
@@ -450,9 +482,31 @@ private:
                     previous_position_error,
                     previous_angle_error
                 );
+                std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
                 cmd_vel_pub->publish(cmd_vel);
-            
-                if(controller.euclidean_distance(current_position, target_position) < accepted_distance.linear){
+                           
+                if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
+                    RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
+                    state_manager.setControlMode(2); // Switch to precision mode
+                    
+                }
+
+     
+            }
+            break;
+            }
+        case 2: 
+        {
+            geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
+                    current_position,
+                    euler_angles,
+                    goal_position,
+                    d_time,
+                    previous_position_error,
+                    previous_angle_error
+                );
+                cmd_vel_pub->publish(cmd_vel);
+            if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
                     cmd_vel.linear.x = 0.0;
                     cmd_vel.angular.z = 0.0;
@@ -464,13 +518,10 @@ private:
                     cmd_vel_pub->publish(cmd_vel);
                     result->success = true;
                     stop_control_loop();
-                }
-            
-            
-                
+                    }    
             break;
-            }
-        case 2: // stop
+        }
+        case 3: // stop
             //execute_stop_command(result);
             break;
         default:

@@ -107,3 +107,17 @@ double Transformation::unwrapAngle(double angle, double max, double min) const {
     return angle;
     }
 
+double Transformation::velocity_vector(const Stamped3DVector& current_position, Stamped3DVector& previous_position, double d_time){
+    
+    double velocity_x = 0.0;
+    double velocity_y = 0.0;
+    if(d_time > 0.0){
+        velocity_x = (current_position.x() - previous_position.x()) / d_time;
+        velocity_y = (current_position.y() - previous_position.y()) / d_time;
+    }
+   
+    previous_position.setX(current_position.x());
+    previous_position.setY(current_position.y());
+
+    return std::sqrt(velocity_x * velocity_x + velocity_y * velocity_y);
+}

@@ -1,8 +1,16 @@
 /lab_base/chassis/**:
   ros__parameters:
-    controller:
-      kp: 0.5
-      kd: 0.5
+    angular_controller:
+      kp: 1.0
+      kd: 0.1
+    linear_controller:
+      kp: 1.0
+      kd: 0.1
+    linear_precision_controller:
+      kp: 1.0
+      kd: 20.0  #maybe add angular to case 2 controller
     target_distance:
-      angular: 0.1
-      linear: 0.03
+      angular: 0.05
+      waypoint: 5.0
+    goal_distance:
+      threshold: 0.05

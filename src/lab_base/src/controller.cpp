@@ -13,7 +13,7 @@ TurnResult Controller::turn_controller(
         current_angle);
     //Eigen::Vector3d local_target = transformation.global_to_local(target_position, current_position, current_angle);
     //double theta = atan2(local_target.y(), local_target.x());
-    std::cout << "Calculated angle to target: " << local_angle_error << std::endl;
+    //std::cout << "Calculated angle to target: " << local_angle_error << std::endl;
     //double angle_error = local_angle_error - current_angle.z();
 
     while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
@@ -25,11 +25,58 @@ TurnResult Controller::turn_controller(
     }
     
     geometry_msgs::msg::Twist output_velocity;
-    output_velocity.angular.z = 1.0 * local_angle_error + 0.1 * local_angle_error_d;
+    output_velocity.angular.z = pd_angular_gains.kp * local_angle_error + pd_angular_gains.kd * local_angle_error_d;
     previous_angle_error.Z.error = local_angle_error;
     
     return TurnResult{output_velocity, local_angle_error};
 }
+geometry_msgs::msg::Twist Controller::dd_PD_precision_controller(const Stamped3DVector& current_position, 
+        Eigen::Vector3d& current_angle,
+        Stamped3DVector&  target_position,
+        double sample_time,
+        PositionError& previous_position_error,
+        PositionError& previous_angle_error
+        )
+    {
+    // Position error (just X for now)
+    double local_angle_error = transformation.calculate_angle_to_target(
+        target_position,
+        current_position,
+        current_angle);
+    double position_error_x = target_position.x() - current_position.x();
+    double position_error_y = target_position.y() - current_position.y();
+    
+    Eigen::Vector3d global_error(position_error_x, position_error_y, 0.0);
+    
+    Eigen::Vector3d local_error = transformation.global_to_local_error(current_position, global_error, current_angle);
+    
+
+    
+    while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
+    while (local_angle_error < -M_PI) local_angle_error += 2.0 * M_PI;
+
+    double local_angle_error_d = 0.0;
+    double position_error_x_d = 0.0;
+    if (sample_time > 0.0) {
+        position_error_x_d = (local_error.x() - previous_position_error.X.error) / sample_time;
+        local_angle_error_d = (local_angle_error - previous_angle_error.Z.error) / sample_time;
+    }
+
+    // PD output
+    geometry_msgs::msg::Twist output_velocity;
+    output_velocity.linear.x = pd_linear_precision_gains.kp * local_error.x() + pd_linear_precision_gains.kd * position_error_x_d;
+    output_velocity.angular.z = pd_angular_gains.kp * local_angle_error + pd_angular_gains.kd * local_angle_error_d;
+    
+    // Save error for next tick
+    previous_position_error.X.error = local_error.x();
+    previous_angle_error.Z.error = local_angle_error;
+
+    output_velocity.linear.x = std::clamp(output_velocity.linear.x, -1.1, 1.1); //Speed limit after Ridgeback Max Speed
+
+    //output_velocity.linear.x = 0.0;
+    return output_velocity;
+}
+
 
 geometry_msgs::msg::Twist Controller::dd_PD_controller(const Stamped3DVector& current_position, 
         Eigen::Vector3d& current_angle,
@@ -46,11 +93,11 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller(const Stamped3DVector& cu
         current_angle);
     double position_error_x = target_position.x() - current_position.x();
     double position_error_y = target_position.y() - current_position.y();
-    //std::cout << "Current angle in world frame around z-axis: " << current_angle.z() << std::endl;
+    
     Eigen::Vector3d global_error(position_error_x, position_error_y, 0.0);
-    //std::cout << "Global error: x=" << global_error.x() << ", y=" << global_error.y() << std::endl;
+    
     Eigen::Vector3d local_error = transformation.global_to_local_error(current_position, global_error, current_angle);
-    //std::cout << "Local error: x=" << local_error.x() << ", y=" << local_error.y() << std::endl;
+    
 
     
     while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
@@ -65,14 +112,14 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller(const Stamped3DVector& cu
 
     // PD output
     geometry_msgs::msg::Twist output_velocity;
-    output_velocity.linear.x = pd_gains.kp * local_error.x() + pd_gains.kd * position_error_x_d;
-    output_velocity.angular.z = pd_gains.kp * local_angle_error + pd_gains.kd * local_angle_error_d;
+    output_velocity.linear.x = pd_linear_gains.kp * local_error.x() + pd_linear_gains.kd * position_error_x_d;
+    output_velocity.angular.z = pd_angular_gains.kp * local_angle_error + pd_angular_gains.kd * local_angle_error_d;
     
     // Save error for next tick
     previous_position_error.X.error = local_error.x();
     previous_angle_error.Z.error = local_angle_error;
 
-    output_velocity.linear.x = std::clamp(output_velocity.linear.x, -2.5, 2.5); 
+    output_velocity.linear.x = std::clamp(output_velocity.linear.x, -1.1, 1.1); //Speed limit after Ridgeback Max Speed
 
     //output_velocity.linear.x = 0.0;
     return output_velocity;
@@ -91,6 +138,8 @@ double Controller::euclidean_distance(const Stamped3DVector& current_position, c
     return (target_position.vector() - current_position.vector()).norm();
 }
 
-void Controller::setGains(const PIDControllerGains& gains) {
-    pd_gains = gains;
+void Controller::setGains(const PIDControllerGains& lin_gains, const PIDControllerGains& ang_gains, const PIDControllerGains& lin_precision_gains) {
+    pd_linear_gains = lin_gains;
+    pd_angular_gains = ang_gains;
+    pd_linear_precision_gains = lin_precision_gains;
 }

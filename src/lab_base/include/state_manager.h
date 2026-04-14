@@ -76,6 +76,8 @@ public:
     int getControlMode();
     void setPositionError(const PositionError& error);
     PositionError getPositionError();
+    void setGoalPosition(const Stamped3DVector& goal_position);
+    Stamped3DVector getGoalPosition();
     
 
 
@@ -93,5 +95,8 @@ private:
     std::mutex control_mode_mutex;
     std::mutex position_error_mutex;
     PositionError position_error;
+    std::mutex goal_position_mutex;
+    Stamped3DVector goal_position;
+
     int control_mode = 0; 
 };

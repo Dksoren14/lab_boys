@@ -70,3 +70,14 @@ PositionError StateManager::getPositionError() {
     std::lock_guard<std::mutex> lock(position_error_mutex);
     return position_error;
 }
+
+void StateManager::setGoalPosition(const Stamped3DVector& goal_position_) {
+    std::lock_guard<std::mutex> lock(goal_position_mutex);
+    goal_position = goal_position_;
+}
+
+Stamped3DVector StateManager::getGoalPosition() {
+    std::lock_guard<std::mutex> lock(goal_position_mutex);
+    return goal_position;
+}
+

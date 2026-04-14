@@ -31,6 +31,8 @@ public:
     
     double unwrapAngle(double angle, double max, double min) const;
 
+    double velocity_vector(const Stamped3DVector& current_position, Stamped3DVector& previous_position, double d_time);
+
 private:
 
 };
