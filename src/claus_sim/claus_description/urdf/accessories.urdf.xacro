@@ -10,6 +10,52 @@
     ridgeback_base/launch/base.launch
   -->
 
+<xacro:macro name="simple_lidar" params="prefix parent_link location topic">
+
+  <link name="${prefix}_laser">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.05"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <joint name="${prefix}_laser_joint" type="fixed">
+    <parent link="${parent_link}"/>
+    <child link="${prefix}_laser"/>
+    <origin xyz="${location * 0.3999} 0 0.2337"
+            rpy="0 0 ${PI/2 - (location * PI/2)}"/>
+  </joint>
+
+  <gazebo reference="${prefix}_laser">
+    <sensor name="${prefix}_lidar" type="gpu_lidar">
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <topic>${topic}</topic>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <min_angle>-3.14</min_angle>
+            <max_angle>3.14</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.1</min>
+          <max>20.0</max>
+        </range>
+      </ray>
+    </sensor>
+  </gazebo>
+
+</xacro:macro>
+
+
+
+
+
   <xacro:include filename="$(find claus_description)/urdf/accessories/sick_lms1xx_mount.urdf.xacro" />
   <xacro:include filename="$(find claus_description)/urdf/accessories/sick_s300_mount.urdf.xacro" />
   <xacro:include filename="$(find claus_description)/urdf/accessories/hokuyo_ust-10lx_mount.urdf.xacro" />

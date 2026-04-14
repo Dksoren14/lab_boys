@@ -34,7 +34,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
         <geometry>
-          <mesh filename="package://claus_description/meshes/wheel.stl"/>
+          <mesh filename="file://$(find claus_description)/meshes/wheel.stl"/>
         </geometry>
         <material name="black" />
       </visual>
@@ -78,7 +78,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="${PI/2} 0 ${PI/2}" />
         <geometry>
-          <mesh filename="package://claus_description/meshes/rocker.stl"/>
+          <mesh filename="file://$(find claus_description)/meshes/rocker.stl"/>
         </geometry>
         <material name="black" />
       </visual>
@@ -128,14 +128,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/body.stl"/>
+        <mesh filename="file://$(find claus_description)/meshes/body.stl"/>
       </geometry>
       <material name="black" />
     </visual>
     <collision>
       <origin xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://claus_description/meshes/body-collision.stl"/>
+        <mesh filename="file://$(find claus_description)/meshes/body-collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -184,7 +184,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 ${PI}" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/side-cover.stl"/>
+        <mesh filename="file://$(find claus_description)/meshes/side-cover.stl"/>
       </geometry>
       <material name="yellow" />
     </visual>
@@ -193,7 +193,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/side-cover.stl"/>
+        <mesh filename="file://$(find claus_description)/meshes/side-cover.stl"/>
       </geometry>
       <material name="yellow" />
     </visual>
@@ -209,7 +209,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/end-cover.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/end-cover.stl" />
       </geometry>
       <material name="black" />
     </visual>
@@ -225,7 +225,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 ${PI}" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/end-cover.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/end-cover.stl" />
       </geometry>
       <material name="black" />
     </visual>
@@ -246,7 +246,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/lights.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/lights.stl" />
       </geometry>
       <material name="white" />
     </visual>
@@ -255,7 +255,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 ${PI}" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/lights.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/lights.stl" />
       </geometry>
       <material name="black" />
     </visual>
@@ -271,14 +271,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/top.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/top.stl" />
       </geometry>
       <material name="black" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/top.stl"/>
+        <mesh filename="file://$(find claus_description)/meshes/top.stl"/>
       </geometry>
     </collision>
   </link>
@@ -293,7 +293,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 ${PI/2} 0" />
       <geometry>
-        <mesh filename="package://claus_description/meshes/axle.stl" />
+        <mesh filename="file://$(find claus_description)/meshes/axle.stl" />
       </geometry>
       <material name="black" />
     </visual>
@@ -329,4 +329,22 @@
 
   <!-- Optional custom includes. -->
   <xacro:include filename="$(optenv RIDGEBACK_URDF_EXTRAS empty.urdf)" />
+
+
+
+  <!-- Front lidar -->
+  <xacro:simple_lidar
+    prefix="front"
+    parent_link="chassis_link"
+    location="1"
+    topic="scan"/>
+
+  <!-- Rear lidar -->
+  <xacro:simple_lidar
+    prefix="rear"
+    parent_link="chassis_link"
+    location="-1"
+    topic="rear/scan"/>
+
+
 </robot>

@@ -1,3 +1,0 @@
-twist_server_node:
-  ros__parameters:
-    robot: do100

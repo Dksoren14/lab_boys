@@ -18,11 +18,11 @@ def generate_launch_description():
 
     # Models path (portable, no ~/ stuff)
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
+    claus_description_path = get_package_share_directory('claus_description')
 
-    clearpath_path = os.path.expanduser("~/lab_boys/src/clearpath_common")
+    resource_paths = ":".join([source_models, claus_description_path])
 
 
-    resource_paths = ":".join([source_models, clearpath_path])
 
     # Xacro path (portable)
     xacro_file = PathJoinSubstitution([
@@ -37,7 +37,8 @@ def generate_launch_description():
         xacro_file,
         " ",
         "platform_config:=generic"
-    ])
+    ]),
+    value_type=str
 
     set_gz_resources = SetEnvironmentVariable(
             name='GZ_SIM_RESOURCE_PATH',
@@ -76,15 +77,26 @@ def generate_launch_description():
     )
 
     spawn_robot_delayed = TimerAction(
-            period=2.0,
+            period=5.0,
             actions=[spawn_robot]
+        )
+    
+    bridge = Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            arguments=[
+                '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+                '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry'
+            ],
+            output='screen'
         )
 
     return LaunchDescription([
         set_gz_resources,
         gazebo_world,
         robot_state_publisher,
-        spawn_robot_delayed
+        spawn_robot_delayed,
+        bridge
     ])
 
 joint_state_broadcaster_spawner = Node(
