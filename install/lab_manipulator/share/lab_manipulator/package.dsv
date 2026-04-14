@@ -1,8 +1,0 @@
-source;share/lab_manipulator/hook/cmake_prefix_path.ps1
-source;share/lab_manipulator/hook/cmake_prefix_path.dsv
-source;share/lab_manipulator/hook/cmake_prefix_path.sh
-source;share/lab_manipulator/local_setup.bash
-source;share/lab_manipulator/local_setup.dsv
-source;share/lab_manipulator/local_setup.ps1
-source;share/lab_manipulator/local_setup.sh
-source;share/lab_manipulator/local_setup.zsh
