@@ -31,23 +31,21 @@ git switch development
 ```
 
 
+To make the robot move:
 
-### Ros usage
-So far we only have the minimum for ros to work, so we can run a "hello world" script for the package "lab_manipulator".
+ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.5}, angular: {z: 0.0}}"
 
-1. Build workspace (need to do this after every code change):
-```
-colcon build
-```
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
 
-2. Source ros
 ```
-source install/setup.bash
-```
-
-3. Run lab_manipulator main code:
-```
-ros2 run lab_manipulator lab_arm
+cd setup
+chmod +x setup.sh
+./setup.sh
 ```
 
+tilføj sudo apt update
 
+sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
+
+pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
