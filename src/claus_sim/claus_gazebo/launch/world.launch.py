@@ -90,14 +90,33 @@ def generate_launch_description():
             ],
             output='screen'
         )
+    
+    odom_to_tf_converter = Node(
+        package='claus_control',
+        executable='odom_to_tf',
+        name='odom_to_tf',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )   
+
+    teleop_bridge = Node(
+    package='ros_gz_bridge',
+    executable='parameter_bridge',
+    arguments=['/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist'],
+    output='screen'
+)
 
     return LaunchDescription([
         set_gz_resources,
         gazebo_world,
         robot_state_publisher,
         spawn_robot_delayed,
-        bridge
+        bridge,
+        odom_to_tf_converter,
+        teleop_bridge
     ])
+
+
 
 joint_state_broadcaster_spawner = Node(
     package='controller_manager',

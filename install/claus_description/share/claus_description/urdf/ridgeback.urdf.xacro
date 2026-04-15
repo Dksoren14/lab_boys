@@ -319,6 +319,9 @@
     <origin xyz="0 0 ${riser_height + deck_thickness}" rpy="0 0 0"/>
   </joint>
 
+  <topic>/cmd_vel</topic>
+  <odom_topic>/odom</odom_topic>
+
   <!-- Bring in simulation data for Gazebo. -->
   <xacro:include filename="$(find claus_description)/urdf/ridgeback.gazebo" />
 
