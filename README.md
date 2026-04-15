@@ -10,7 +10,7 @@ cd lab_boys
 colcon build
 ```
 Remember that master is only for code we are completely sure works.
-When working 
+When working on code, always push to development first, then when we are sure this works as intendet we merge with master.
 
 3. Check for development branch:
 ```
@@ -18,9 +18,10 @@ git branch -a
 ```
 If the output is:
 ```
-* main
-remotes/origin/main
+* master
+remotes/origin/master
 remotes/origin/development
+remotes/origin/master
 ```
 Move on to step 4, else contact nearest adult.
 
