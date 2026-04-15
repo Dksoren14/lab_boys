@@ -81,3 +81,12 @@ Stamped3DVector StateManager::getGoalPosition() {
     return goal_position;
 }
 
+void StateManager::setPath(std::vector<geometry_msgs::msg::PoseStamped>& path) {
+    std::lock_guard<std::mutex> lock(path_mutex);
+    this->path = path;
+}
+
+std::vector<geometry_msgs::msg::PoseStamped> StateManager::getPath() {
+    std::lock_guard<std::mutex> lock(path_mutex);
+    return path;
+}   

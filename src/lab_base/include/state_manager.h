@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
 
 struct Stamped3DVector {
@@ -78,6 +79,8 @@ public:
     PositionError getPositionError();
     void setGoalPosition(const Stamped3DVector& goal_position);
     Stamped3DVector getGoalPosition();
+    void setPath(std::vector<geometry_msgs::msg::PoseStamped>& path);
+    std::vector<geometry_msgs::msg::PoseStamped> getPath();
     
 
 
@@ -97,6 +100,8 @@ private:
     PositionError position_error;
     std::mutex goal_position_mutex;
     Stamped3DVector goal_position;
+    std::mutex path_mutex;
+    std::vector<geometry_msgs::msg::PoseStamped> path;
 
     int control_mode = 0; 
 };

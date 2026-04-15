@@ -247,7 +247,9 @@ private:
                     path.poses.size());
 
         // Store it for your controller
-        path_ = path.poses;
+        
+        state_manager.setPath(path.poses);
+
     }
 
     void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
@@ -467,6 +469,7 @@ private:
                         break;
                     }
                 }
+                path_ = state_manager.getPath(); // Get the latest path from the state manager
                 auto &way_point = path_[current_waypoint_idx_];
                 target_position = Stamped3DVector(way_point.header.stamp, 
                                                     way_point.pose.position.x, 
