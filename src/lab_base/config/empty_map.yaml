@@ -1,4 +1,4 @@
-image: /home/dksoren/lab_boys/install/lab_base/share/lab_base/config/empty_map.pgm
+image: empty_map.pgm
 resolution: 0.05
 origin: [-50.0, -50.0, 0.0]
 negate: 0
