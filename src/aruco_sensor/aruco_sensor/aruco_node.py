@@ -1,4 +1,4 @@
-from threading import Thread
+from threading import Thread, Lock
 
 import rclpy
 from rclpy.node import Node
@@ -16,13 +16,13 @@ class ArucoSenorNode(Node):
         self.g_pose = [0.0, 0.0, 0.0]
         self.g_orientation = 0.0
 
+        self.lock = Lock()
+
         qos = rclpy.qos.QoSProfile(
             depth=10,
             reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
             durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE
         )
-
-
       
         self.base_global_position_sub = self.create_subscription(
             PoseArray,
@@ -42,13 +42,14 @@ class ArucoSenorNode(Node):
         
 
 
-
     def global_callback(self, msg):
-        self.g_pose = [msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
+        with self.lock:
+            self.g_pose = [msg.poses[0].position.x, msg.poses[0].position.y, msg.poses[0].position.z]
 
     def orientation_callback(self, msg):
-        self.g_orientation = msg.orientation[2]
-    
+        with self.lock:
+            self.g_orientation = msg.orientation[2]
+
     def publish_marker_pose(self, T_world_marker):
         pose_msg = Pose()
         pose_msg.position.x = float(T_world_marker[0, 3])
@@ -64,7 +65,8 @@ class ArucoSenorNode(Node):
         pose_msg.orientation.w = float(qw)
 
         self.marker_pub.publish(pose_msg)
-        
+
+       
 def get_config():
     return {
         "res_x": 1280,
@@ -72,7 +74,7 @@ def get_config():
         "fps": 30,
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
         "marker_size": 800,
-        "marker_size_IRL": 0.25    }
+        "marker_size_IRL": 0.162    }
 
 def detect_markers(config, node):
     aruco_dict = cv2.aruco.getPredefinedDictionary(config["aruco_dict_type"])
@@ -115,6 +117,11 @@ def detect_markers(config, node):
             if ids is not None:
                 cv2.aruco.drawDetectedMarkers(frame, corners)
 
+                with node.lock:
+                    g_pose = node.g_pose
+                    g_orientation = node.g_orientation
+
+    
                 for i in range(len(ids)):
                     corner_points = corners[i][0]
                     image_points = np.array(corner_points, dtype=np.float32)
@@ -133,7 +140,7 @@ def detect_markers(config, node):
                         T_cam_marker = np.eye(4, dtype=np.float32)
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
-                        T_world_marker = matrix_transformation(T_cam_marker, node.g_pose, node.g_orientation)
+                        T_world_marker = matrix_transformation(T_cam_marker, g_pose, g_orientation)
                         node.publish_marker_pose(T_world_marker)
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
@@ -207,8 +214,6 @@ def start_ros(node):
         except KeyboardInterrupt:
             node.get_logger().info('Node interrupted by user')
         finally:
-
-            node.shutdown_node()
             rclpy.shutdown()
 
 
