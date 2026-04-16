@@ -1,27 +1,34 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, SetEnvironmentVariable, TimerAction
+from launch.actions import ExecuteProcess, SetEnvironmentVariable, TimerAction, IncludeLaunchDescription
 from launch_ros.actions import Node
 from launch.substitutions import Command, PathJoinSubstitution
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
+from ament_index_python import get_package_prefix
 import os
 
 
 def generate_launch_description():
 
     # Get package paths (portable)
-    gazebo_pkg = get_package_share_directory('claus_gazebo')
+    claus_gazebo_pkg = get_package_share_directory('claus_gazebo')
+    manipulator_pkg = FindPackageShare('lab_manipulator')
+    lab_base_pkg = FindPackageShare('lab_base')
 
     # World file
-    world = os.path.join(gazebo_pkg, 'worlds', 'sim_environment.world')
+    world = os.path.join(claus_gazebo_pkg, 'worlds', 'sim_environment.world')
 
     # Models path
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
     claus_description_path = get_package_share_directory('claus_description')
 
     resource_paths = ":".join([source_models, claus_description_path])
-
+    
+    #Params
+    params_path = PathJoinSubstitution([lab_base_pkg, 'config', 'setup_sim.yaml'])
+    params_nav2 = PathJoinSubstitution([lab_base_pkg, 'config', 'nav2_params.yaml'])
 
 
     # Xacro path (portable)
@@ -80,30 +87,73 @@ def generate_launch_description():
             period=5.0,
             actions=[spawn_robot]
         )
-    
-    bridge = Node(
-            package='ros_gz_bridge',
-            executable='parameter_bridge',
-            arguments=[
-                '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-                '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry'
-            ],
-            output='screen'
-        )
+
+    static_map_odom = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+        output='screen'
+    )
+
+    static_odom_baselink = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['0', '0', '0', '0', '0', '0', 'odom', '/odom'],
+        output='screen'
+    )
+
+    static_baselink_remap = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['0', '0', '0', '0', '0', '0', '/base_link', 'base_link'],
+        output='screen'
+    )
+
+    lab_base_node = Node(
+        package='lab_base',
+        executable='lab_chassis',
+        name='chassis',
+        namespace='lab_base/chassis',
+        parameters=[params_path],
+        remappings=[('/lab_base/chassis/lab_boys/out/base_state', '/lab_boys/out/base_state')],
+        output='screen'
+    )
+
+    nav2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare("nav2_bringup"),
+                "launch",
+                "bringup_launch.py"
+            ])
+        ]),
+        launch_arguments=[
+            ("params_file", params_nav2),
+            ("use_sim_time", "true"),
+            ("use_composition", "False"),
+            ("map", PathJoinSubstitution([lab_base_pkg, 'config', 'empty_map.yaml'])) 
+        ]
+    )
+
+    lab_base_delayed = TimerAction(
+        period=5.0,
+        actions=[lab_base_node]
+    )
+
     
     gazebo_topic = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
             '/world/default/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',
             '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
             '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
             '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry'
         ],
-        remappings=[
-            ('/model/r100/tf', '/tf'),
-        ],
+        #remappings=[
+        #    ('/model/r100/tf', '/tf'),
+        #],
         output='screen'
     )
 
@@ -120,24 +170,14 @@ def generate_launch_description():
         set_gz_resources,
         gazebo_world,
         robot_state_publisher,
+        static_map_odom,
+        static_odom_baselink,
+        static_baselink_remap,
         spawn_robot_delayed,
-        bridge,
+        nav2,
+        lab_base_delayed,
+        gazebo_topic,
         odom_to_tf_converter,
-        teleop_bridge
     ])
 
 
-
-joint_state_broadcaster_spawner = Node(
-    package='controller_manager',
-    executable='spawner',
-    arguments=['joint_state_broadcaster'],
-    output='screen'
-)
-
-mecanum_controller_spawner = Node(
-    package='controller_manager',
-    executable='spawner',
-    arguments=['mecanum_controller'],
-    output='screen'
-)
