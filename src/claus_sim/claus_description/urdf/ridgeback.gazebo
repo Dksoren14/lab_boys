@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<robot>
+
+  <!-- Base appearance -->
+  <gazebo reference="base_link">
+    <material>Gazebo/DarkGrey</material>
+    <gravity>true</gravity>
+  </gazebo>
+
+  <!-- Link colors -->
+  <gazebo reference="chassis_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="top_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="left_side_cover_link"><material>Gazebo/Yellow</material></gazebo>
+  <gazebo reference="right_side_cover_link"><material>Gazebo/Yellow</material></gazebo>
+  <gazebo reference="front_cover_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="rear_cover_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="front_lights_link"><material>Gazebo/White</material></gazebo>
+  <gazebo reference="rear_lights_link"><material>Gazebo/Red</material></gazebo>
+  <gazebo reference="front_rocker_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="rear_rocker_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="axle_link"><material>Gazebo/DarkGrey</material></gazebo>
+
+  <!-- Wheel friction -->
+  <gazebo reference="front_left_wheel_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <gazebo reference="front_right_wheel_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <gazebo reference="rear_left_wheel_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <gazebo reference="rear_right_wheel_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <!-- ✅ IMU sensor (modern Gazebo) -->
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+    </sensor>
+  </gazebo>
+
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+    
+      <!-- Wheel joints -->
+      <left_joint>front_left_wheel</left_joint>
+      <left_joint>rear_left_wheel</left_joint>
+    
+      <right_joint>front_right_wheel</right_joint>
+      <right_joint>rear_right_wheel</right_joint>
+
+      <!-- Robot geometry -->
+      <wheel_separation>0.6</wheel_separation>
+      <wheel_radius>0.0759</wheel_radius>
+
+      <!-- Topics -->
+      <topic>cmd_vel</topic>
+      <odom_topic>odom</odom_topic>
+
+      <!-- Frames -->
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+
+      <!-- Publish TF -->
+      <publish_tf>true</publish_tf>
+
+    </plugin>
+  </gazebo>
+
+</robot>
