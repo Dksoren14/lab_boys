@@ -24,7 +24,7 @@ private:
   {
     geometry_msgs::msg::TransformStamped tf_msg;
 
-    tf_msg.header.stamp = msg->header.stamp;
+    tf_msg.header.stamp = this->get_clock()->now();
     tf_msg.header.frame_id = msg->header.frame_id;
     tf_msg.child_frame_id = msg->child_frame_id;
 

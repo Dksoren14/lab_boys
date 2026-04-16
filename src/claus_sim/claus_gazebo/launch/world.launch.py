@@ -82,16 +82,6 @@ def generate_launch_description():
         )
     
     bridge = Node(
-<<<<<<< HEAD
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=[
-            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
-            '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry'
-        ],
-        output='screen'
-    )
-=======
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[
@@ -117,7 +107,6 @@ def generate_launch_description():
         output='screen'
     )
 
->>>>>>> 9f04d10da32a39fafb53557f76de1b24ee21be1f
     odom_to_tf_converter = Node(
         package='claus_control',
         executable='odom_to_tf',
@@ -126,15 +115,6 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
         )   
 
-<<<<<<< HEAD
-    teleop_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=['/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist'],
-        output='screen'
-    )
-=======
->>>>>>> 9f04d10da32a39fafb53557f76de1b24ee21be1f
 
     return LaunchDescription([
         set_gz_resources,
@@ -142,8 +122,7 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_robot_delayed,
         bridge,
-        odom_to_tf_converter,
-        teleop_bridge
+        odom_to_tf_converter
     ])
 
 
