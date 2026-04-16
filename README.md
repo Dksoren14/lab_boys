@@ -67,3 +67,4 @@ source install/setup.bash
 ```
 ros2 launch claus_gazebo world.launch.py
 ```
+sudo apt install ros-jazzy-lms1xx
