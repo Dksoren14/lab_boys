@@ -110,7 +110,7 @@ public:
 
         // --- Subscriptions ---
         base_global_position_sub = this->create_subscription<geometry_msgs::msg::PoseArray>(
-            "/world/car_world/dynamic_pose/info",
+            "/world/default/dynamic_pose/info",
             qos,
             [this](const geometry_msgs::msg::PoseArray::SharedPtr msg){
                 global_callback(msg);
@@ -120,7 +120,7 @@ public:
 
         // --- Publishers ---
         cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>(
-        "/model/r100/cmd_vel", 10);
+         "/cmd_vel", 10);
 
         base_state_pub = this->create_publisher<interfaces::msg::BaseState>(
             "lab_boys/out/base_state", 10);
@@ -246,7 +246,8 @@ private:
                     "Received path with %ld poses",
                     path.poses.size());
 
-        // Store it for your controller
+        Stamped3DVector temp_global = state_manager.getGlobalBasePosition();
+        std::cout << "Global position updated: [" << temp_global.x() << ", " << temp_global.y() << ", " << temp_global.z() << "]" << std::endl;
         
         state_manager.setPath(path.poses);
 
@@ -254,11 +255,11 @@ private:
 
     void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
     {
-        Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[0].position.x, msg->poses[0].position.y, msg->poses[0].position.z);
-        Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[0].orientation.x, msg->poses[0].orientation.y, msg->poses[0].orientation.z); 
+        Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[4].position.x, msg->poses[4].position.y, msg->poses[4].position.z);
+        Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[4].orientation.x, msg->poses[4].orientation.y, msg->poses[4].orientation.z); 
         state_manager.setGlobalBasePosition(global_position);
-        auto& q_msg = msg->poses[0].orientation;
-
+        auto& q_msg = msg->poses[4].orientation;
+        
         Eigen::Quaterniond q(
             q_msg.w,
             q_msg.x,
