@@ -149,10 +149,11 @@ def generate_launch_description():
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-            '/world/default/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock',
+           '/world/default/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock',
             '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
             '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
             '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            #'/world/default/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',
         ],
         remappings=[
             ('/world/default/clock', '/clock'),

@@ -109,10 +109,10 @@ public:
         qos.durability(rclcpp::DurabilityPolicy::Volatile);
 
         // --- Subscriptions ---
-        base_global_position_sub = this->create_subscription<geometry_msgs::msg::PoseArray>(
-            "/world/default/dynamic_pose/info",
+        base_global_position_sub = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/odom",
             qos,
-            [this](const geometry_msgs::msg::PoseArray::SharedPtr msg){
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg){
                 global_callback(msg);
             }
         );
@@ -167,7 +167,7 @@ private:
     std::shared_ptr<const BaseCommandAction::Goal> current_goal;
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
-    rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr base_global_position_sub;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr base_global_position_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub; 
     rclcpp::Publisher<interfaces::msg::BaseState>::SharedPtr base_state_pub;
     rclcpp::Time last_time;
@@ -247,29 +247,25 @@ private:
                     path.poses.size());
 
         Stamped3DVector temp_global = state_manager.getGlobalBasePosition();
-        std::cout << "Global position updated: [" << temp_global.x() << ", " << temp_global.y() << ", " << temp_global.z() << "]" << std::endl;
-        
+       
         state_manager.setPath(path.poses);
 
     }
 
-    void global_callback(const geometry_msgs::msg::PoseArray::SharedPtr msg)
-    {
-        Stamped3DVector global_position = Stamped3DVector(msg->header.stamp, msg->poses[4].position.x, msg->poses[4].position.y, msg->poses[4].position.z);
-        Stamped3DVector global_orientation = Stamped3DVector(msg->header.stamp, msg->poses[4].orientation.x, msg->poses[4].orientation.y, msg->poses[4].orientation.z); 
-        state_manager.setGlobalBasePosition(global_position);
-        auto& q_msg = msg->poses[4].orientation;
+    void global_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+        {
+            Stamped3DVector global_position = Stamped3DVector(
+                msg->header.stamp,
+                msg->pose.pose.position.x,
+                msg->pose.pose.position.y,
+                msg->pose.pose.position.z
+            );
+            state_manager.setGlobalBasePosition(global_position);
         
-        Eigen::Quaterniond q(
-            q_msg.w,
-            q_msg.x,
-            q_msg.y,
-            q_msg.z
-        );
-
-        state_manager.setGlobalBaseOrientation(q);
-
-    }
+            auto& q_msg = msg->pose.pose.orientation;
+            Eigen::Quaterniond q(q_msg.w, q_msg.x, q_msg.y, q_msg.z);
+            state_manager.setGlobalBaseOrientation(q);
+        }
 
     void local_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
@@ -460,7 +456,7 @@ private:
             }
             else{
                
-                
+                 std::cout << "Global position updated: [" << current_position.x() << ", " << current_position.y() << ", " << current_position.z() << "]" << std::endl;
                 while (current_waypoint_idx_ < (int)path_.size() - 1) {
                     auto &wp = path_[current_waypoint_idx_];
                     Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
