@@ -22,16 +22,14 @@ public:
 private:
   void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
   {
+
     geometry_msgs::msg::TransformStamped tf_msg;
-
-    tf_msg.header.stamp = this->get_clock()->now();
-    tf_msg.header.frame_id = msg->header.frame_id;
-    tf_msg.child_frame_id = msg->child_frame_id;
-
+    tf_msg.header.stamp = msg->header.stamp;
+    tf_msg.header.frame_id = "odom";       // ← hardcode instead of reading from msg
+    tf_msg.child_frame_id = "base_link";   // ← hardcode instead of reading from msg
     tf_msg.transform.translation.x = msg->pose.pose.position.x;
     tf_msg.transform.translation.y = msg->pose.pose.position.y;
     tf_msg.transform.translation.z = msg->pose.pose.position.z;
-
     tf_msg.transform.rotation = msg->pose.pose.orientation;
 
     tf_broadcaster_->sendTransform(tf_msg);
