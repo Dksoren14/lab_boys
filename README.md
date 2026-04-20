@@ -31,7 +31,7 @@ git switch development
 ```
 
 
-To make the robot move:
+### To make the robot move:
 
 ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.5}, angular: {z: 0.0}}"
