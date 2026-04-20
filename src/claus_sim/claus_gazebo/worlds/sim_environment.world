@@ -26,6 +26,7 @@
     </include>
 
     <model name="wall1">
+      <static>true</static>
       <pose>1.54 0 1 0 0 1.57</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
@@ -50,6 +51,7 @@
     </model>
 
     <model name="wall2">
+      <static>true</static>
       <pose>-4.595 0 1 0 0 1.57</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
@@ -74,6 +76,7 @@
     </model>
 
     <model name="wall3">
+      <static>true</static>
       <pose>-1.5425 2.225 1 0 0 0</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
@@ -98,6 +101,7 @@
     </model>
 
     <model name="wall4">
+      <static>true</static>
       <pose>-1.5425 -2.225 1 0 0 0</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
