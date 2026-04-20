@@ -51,6 +51,16 @@ public:
     bool simple_distance_test(const Stamped3DVector& current_position, const Stamped3DVector& target_position);
     double euclidean_distance(const Stamped3DVector& current_position, const Stamped3DVector& target_position);
     void setGains(const PIDControllerGains& lin_gains, const PIDControllerGains& ang_gains, const PIDControllerGains& lin_precision_gains);
+
+    geometry_msgs::msg::Twist dd_PD_controller_2(const Stamped3DVector& current_position, 
+        Eigen::Vector3d& current_angle,
+        Stamped3DVector&  target_position,
+        double sample_time,
+        PositionError& previous_position_error,
+        PositionError& previous_angle_error,
+        Stamped3DVector& global_velocity
+        );
+
 private:
     StateManager& state_manager;
     Transformation transformation;

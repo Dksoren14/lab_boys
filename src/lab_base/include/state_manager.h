@@ -53,6 +53,7 @@ struct PositionError {
     PIDError Y;
     PIDError Z;
     PIDError Theta;
+    PIDError dX;
 };
 
 struct TurnResult {
@@ -69,6 +70,8 @@ public:
     Stamped3DVector getGlobalBasePosition();
     void setGlobalBaseOrientation(const Eigen::Quaterniond& orientation);
     Eigen::Quaterniond getGlobalBaseOrientation();
+    void setGlobalBaseVelocity(const Stamped3DVector& velocity);
+    Stamped3DVector getGlobalBaseVelocity();
     void setLocalVelocity(const Stamped3DVector& velocity);
     Stamped3DVector getLocalVelocity();
     void setTargetPosition(const Stamped3DVector& target_position);
@@ -91,6 +94,8 @@ private:
     Stamped3DVector global_base_position;
     std::mutex global_base_orientation_mutex;
     Eigen::Quaterniond global_base_orientation;
+    std::mutex global_base_velocity_mutex;
+    Stamped3DVector global_base_velocity;
     std::mutex local_velocity_mutex;
     Stamped3DVector local_velocity;
     std::mutex target_position_mutex;

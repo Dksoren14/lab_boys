@@ -30,6 +30,17 @@ Eigen::Quaterniond StateManager::getGlobalBaseOrientation() {
     return global_base_orientation;
 }
 
+Stamped3DVector StateManager::getGlobalBaseVelocity() {
+    std::lock_guard<std::mutex> lock(global_base_velocity_mutex);
+    return global_base_velocity;
+}
+
+void StateManager::setGlobalBaseVelocity(const Stamped3DVector& velocity) {
+    std::lock_guard<std::mutex> lock(global_base_velocity_mutex);
+    global_base_velocity = velocity;
+}
+
+
 void StateManager::setLocalVelocity(const Stamped3DVector& velocity) {
     std::lock_guard<std::mutex> lock(local_velocity_mutex);
     local_velocity = velocity;

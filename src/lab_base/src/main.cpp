@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <ctime>
+#include <termios.h>
+#include <fcntl.h>
 
 // ROS2 headers
 #include <rclcpp/rclcpp.hpp>
@@ -163,6 +165,7 @@ private:
     rclcpp::TimerBase::SharedPtr control_timer;
     PositionError previous_position_error;
     PositionError previous_angle_error;
+    PositionError previous_velocity_error;
     Stamped3DVector previous_position;
     std::shared_ptr<const BaseCommandAction::Goal> current_goal;
     std::shared_ptr<BaseCommandAction::Result> current_result;
@@ -183,12 +186,17 @@ private:
 
     Stamped3DVector goal_position;
 
+    bool key_up = false, key_down = false, key_left = false, key_right = false;
+    std::thread keyboard_thread_;
+    bool keyboard_running_ = false;
 
 
     int control_mode = 0; // 0: idle, 1: goto, 2: stop
 
     void replan()
-    {
+    {   
+        
+        std::cout << "Goal before planning: " << state_manager.getGoalPosition().x() << ", " << state_manager.getGoalPosition().y() << ", " << state_manager.getGoalPosition().z() << std::endl;
        if (!path_client->wait_for_action_server(std::chrono::seconds(5)))
         {
             RCLCPP_WARN(this->get_logger(), "Planner not available");
@@ -242,13 +250,19 @@ private:
 
         auto path = result.result->path;
 
-        RCLCPP_INFO(this->get_logger(),
-                    "Received path with %ld poses",
-                    path.poses.size());
+        //Guard for empty path
+        if (path.poses.empty())
+        {
+            RCLCPP_WARN(this->get_logger(), "Received empty path");
+            return;
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Received path with %ld poses", path.poses.size());
 
         Stamped3DVector temp_global = state_manager.getGlobalBasePosition();
        
         state_manager.setPath(path.poses);
+        current_waypoint_idx_ = 0;
 
     }
 
@@ -265,6 +279,14 @@ private:
             auto& q_msg = msg->pose.pose.orientation;
             Eigen::Quaterniond q(q_msg.w, q_msg.x, q_msg.y, q_msg.z);
             state_manager.setGlobalBaseOrientation(q);
+
+            Stamped3DVector global_velocity = Stamped3DVector(
+                msg->header.stamp,
+                msg->twist.twist.linear.x,
+                msg->twist.twist.linear.y,
+                msg->twist.twist.linear.z
+            );
+            state_manager.setGlobalBaseVelocity(global_velocity);
         }
 
     void local_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -311,7 +333,7 @@ private:
     
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const BaseCommandAction::Goal> goal)
     {
-        static const std::vector<std::string> valid_commands = {"goto", "stop"};
+        static const std::vector<std::string> valid_commands = {"goto", "stop", "manual"};
         RCLCPP_INFO(this->get_logger(), "Received goal request with command: %s", goal->command.c_str());
         // Here you can add logic to accept or reject the goal based on its content
          if (std::find(valid_commands.begin(), valid_commands.end(), goal->command) == valid_commands.end())
@@ -358,23 +380,42 @@ private:
                 reached_target_angle = false;
                 state_manager.setControlMode(control_mode);
                 start_control_loop(goal, result);
+                result->success = true;
+                goal_handle->succeed(result);
             }
             else if (goal->command == "stop")
             {
                 RCLCPP_INFO(this->get_logger(), "Executing 'stop' command");
                 //execute_stop_command(result);
                 result ->success = true;
+                goal_handle->succeed(result);
+            }
+            else if (goal->command == "manual")
+            {
+                RCLCPP_INFO(this->get_logger(), "Executing 'manual' command");
+                state_manager.setControlMode(4);
+                current_goal = goal;
+                if (!control_timer) {
+                    control_timer = this->create_wall_timer(
+                    std::chrono::milliseconds(100),
+                    [this]() { control_loop(current_goal); }
+                    );
+                }
+                result->success = true;
+                goal_handle->succeed(result);
             }
             else
             {
                 RCLCPP_WARN(this->get_logger(), "Received unknown command: %s", goal->command.c_str());
                 result->success = false;
+                goal_handle->abort(result);
             }
         }
         catch (const std::exception & e)
         {
             RCLCPP_ERROR(this->get_logger(), "Exception while executing goal: %s", e.what());
             result->success = false;
+            goal_handle->abort(result);
         }
 
     }
@@ -383,6 +424,8 @@ private:
     void start_control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, 
                                   const std::shared_ptr<BaseCommandAction::Result> result) 
     {
+        current_waypoint_idx_ = 0; 
+        reached_target_angle = false;
         
         Stamped3DVector target_position(
             rclcpp::Time(0, 0), // Timestamp can be set to zero or current time if needed
@@ -393,14 +436,13 @@ private:
         state_manager.setGoalPosition(target_position);
 
         current_goal = goal;
-        current_result = result;
 
         if(!control_timer){
             control_timer = this->create_wall_timer(
                 std::chrono::milliseconds(100), // Control loop runs every 100 ms
                 [this]()
                 {
-                    control_loop(current_goal, current_result);
+                    control_loop(current_goal);
                 }
             );
         }
@@ -411,7 +453,7 @@ private:
 
 
 
-    void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal, const std::shared_ptr<BaseCommandAction::Result> result)
+    void control_loop(const std::shared_ptr<const BaseCommandAction::Goal> goal)
     {
         auto now = get_clock()->now();
 
@@ -428,6 +470,7 @@ private:
         Eigen::Vector3d euler_angles = transformation.quaternion_to_euler(current_orientation);
         Stamped3DVector target_position = state_manager.getTargetPosition();
         Stamped3DVector goal_position = state_manager.getGoalPosition();
+        Stamped3DVector global_velocity = state_manager.getGlobalBaseVelocity();
        
         switch (state_manager.getControlMode())
         {
@@ -436,16 +479,22 @@ private:
             break;
         case 1: // goto
             {
-            
+            //The turn controller
             if(!reached_target_angle){
+                 
                 TurnResult cmd_vel_angular = controller.turn_controller(
                     euler_angles, 
                     target_position,
                     current_position,
                     d_time, 
                     previous_angle_error);
+                std::cout << "TURNING - euler_angles.z=" << euler_angles.z() 
+                      << " target=(" << target_position.x() << "," << target_position.y() << ")"
+                      << " angle_error=" << cmd_vel_angular.angle_error << std::endl;
                     
+                cmd_vel_angular.cmd.linear.x = 0.0;
                 cmd_vel_pub->publish(cmd_vel_angular.cmd);
+                
                 if (std::abs(cmd_vel_angular.angle_error) < accepted_distance.angular){
                     std::cout << "Target angle reached, switching to linear control" << std::endl;
                     reached_target_angle = true;
@@ -455,41 +504,68 @@ private:
                 }
             }
             else{
-               
-                 std::cout << "Global position updated: [" << current_position.x() << ", " << current_position.y() << ", " << current_position.z() << "]" << std::endl;
-                while (current_waypoint_idx_ < (int)path_.size() - 1) {
-                    auto &wp = path_[current_waypoint_idx_];
-                    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
-                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
-                        current_waypoint_idx_++;
-                    } else {
-                        break;
-                    }
-                }
-                path_ = state_manager.getPath(); // Get the latest path from the state manager
-                auto &way_point = path_[current_waypoint_idx_];
-                target_position = Stamped3DVector(way_point.header.stamp, 
-                                                    way_point.pose.position.x, 
-                                                    way_point.pose.position.y, 
-                                                    way_point.pose.position.z);
-                state_manager.setTargetPosition(target_position);
 
-                geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
-                    current_position,
-                    euler_angles,
-                    target_position,
-                    d_time,
-                    previous_position_error,
-                    previous_angle_error
-                );
-                std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
-                cmd_vel_pub->publish(cmd_vel);
-                           
-                if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
-                    RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
-                    state_manager.setControlMode(2); // Switch to precision mode
-                    
+                //Another segmentation safety guard:
+                path_ = state_manager.getPath();
+                if (path_.empty()) {
+                    RCLCPP_WARN(this->get_logger(), "Path is empty, cannot execute goto command");
+                    return;
                 }
+
+             
+                std::cout << "Global position updated: [" << current_position.x() << ", " << current_position.y() << ", " << current_position.z() << "]" << std::endl;
+                
+                ////Looking at how close waypoints are, if under accepted distance, skip
+                //while (current_waypoint_idx_ < (int)path_.size() - 1) {
+                //    auto &wp = path_[current_waypoint_idx_];
+                //    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
+                //    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
+                //        current_waypoint_idx_++;
+                //    } else {
+                //        break;
+                //    }
+                //}
+//
+//
+                //auto &way_point = path_[current_waypoint_idx_];
+                //target_position = Stamped3DVector(way_point.header.stamp, 
+                //                                    way_point.pose.position.x, 
+                //                                    way_point.pose.position.y, 
+                //                                    way_point.pose.position.z);
+//
+                //std::cout << "Waypoint " << current_waypoint_idx_ 
+                //          << " frame: " << way_point.header.frame_id
+                //          << " pos: " << way_point.pose.position.x 
+                //          << ", " << way_point.pose.position.y << std::endl;
+                //std::cout << "Current pos: " << current_position.x() 
+                //          << ", " << current_position.y() << std::endl;                         
+                //state_manager.setTargetPosition(target_position);
+                ////The linear controller
+                ////geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
+                ////    current_position,
+                ////    euler_angles,
+                ////    target_position,
+                ////    d_time,
+                ////    previous_velocity_error,
+                ////    previous_angle_error,
+                ////    global_velocity
+                ////);
+                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                //    current_position,
+                //    euler_angles,
+                //    target_position,
+                //    d_time,
+                //    previous_position_error,
+                //    previous_angle_error
+                //);
+                //std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
+                //cmd_vel_pub->publish(cmd_vel);
+                //           
+                //if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
+                //    RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
+                //    state_manager.setControlMode(2); // Switch to precision mode
+                //    
+                //}
 
      
             }
@@ -497,17 +573,35 @@ private:
             }
         case 2: 
         {
-            geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
-                    current_position,
-                    euler_angles,
-                    goal_position,
-                    d_time,
-                    previous_position_error,
-                    previous_angle_error
-                );
-                cmd_vel_pub->publish(cmd_vel);
-            if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
-                    RCLCPP_INFO(this->get_logger(), "Target position reached");
+            //// Final precision controller, looking only at goal
+            //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
+            //        current_position,
+            //        euler_angles,
+            //        goal_position,
+            //        d_time,
+            //        previous_position_error,
+            //        previous_angle_error
+            //    );
+            //    cmd_vel_pub->publish(cmd_vel);
+            //if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
+            //        RCLCPP_INFO(this->get_logger(), "Target position reached");
+            //        cmd_vel.linear.x = 0.0;
+            //        cmd_vel.angular.z = 0.0;
+            //        Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+            //        state_manager.setTargetPosition(target_profile);
+            //        reached_target_angle = false;
+            //        previous_position_error.X.error = 0.0;
+            //        previous_angle_error.Z.error = 0.0;
+            //        cmd_vel_pub->publish(cmd_vel);
+            //        current_waypoint_idx_ = 0;
+            //        stop_control_loop();
+            //        }    
+            break;
+        }
+        case 3: // stop
+            {
+            RCLCPP_INFO(this->get_logger(), "Target position reached");
+                    geometry_msgs::msg::Twist cmd_vel;
                     cmd_vel.linear.x = 0.0;
                     cmd_vel.angular.z = 0.0;
                     Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
@@ -515,15 +609,30 @@ private:
                     reached_target_angle = false;
                     previous_position_error.X.error = 0.0;
                     previous_angle_error.Z.error = 0.0;
-                    cmd_vel_pub->publish(cmd_vel);
-                    result->success = true;
+                    //cmd_vel_pub->publish(cmd_vel);
+                    current_waypoint_idx_ = 0;
                     stop_control_loop();
-                    }    
+              
             break;
-        }
-        case 3: // stop
-            //execute_stop_command(result);
-            break;
+            }
+        case 4: // manual control - not implemented yet, placeholder for future extension
+            {
+                if (!keyboard_running_)
+                    start_keyboard_thread();
+
+                geometry_msgs::msg::Twist cmd_vel;
+                const double lin_speed = 0.3;
+                const double ang_speed = 1.0;
+
+                if (key_up)    cmd_vel.linear.x  =  lin_speed;
+                if (key_down)  cmd_vel.linear.x  = -lin_speed;
+                if (key_left)  cmd_vel.angular.z =  ang_speed;
+                if (key_right) cmd_vel.angular.z = -ang_speed;
+
+                //cmd_vel_pub->publish(cmd_vel);
+                
+                break;
+            }
         default:
             RCLCPP_WARN(this->get_logger(), "Unknown control mode: %d", state_manager.getControlMode());
             break;
@@ -540,6 +649,56 @@ private:
         }
         state_manager.setControlMode(0);
         
+    }
+    void start_keyboard_thread()
+    {
+        keyboard_running_ = true;
+        keyboard_thread_ = std::thread([this]()
+        {
+            int tty_fd = open("/dev/tty", O_RDWR);
+            if (tty_fd < 0) {
+                RCLCPP_ERROR(this->get_logger(), "Cannot open /dev/tty for keyboard input");
+                keyboard_running_ = false;
+                return;
+            }
+
+            struct termios oldt, newt;
+            tcgetattr(tty_fd, &oldt);
+            newt = oldt;
+            newt.c_lflag &= ~(ICANON | ECHO);
+            tcsetattr(tty_fd, TCSANOW, &newt);
+            fcntl(tty_fd, F_SETFL, O_NONBLOCK);
+
+            RCLCPP_INFO(this->get_logger(), "Keyboard control active: W/A/S/D to move, Q to quit");
+
+            while (keyboard_running_)
+            {
+                key_up = key_down = key_left = key_right = false;
+                char c;
+                while (read(tty_fd, &c, 1) > 0)
+                {
+                    switch (tolower(c))
+                    {
+                        case 'w': key_up    = true; break;
+                        case 's': key_down  = true; break;
+                        case 'a': key_left  = true; break;
+                        case 'd': key_right = true; break;
+                        case 'q': keyboard_running_ = false; break;
+                    }
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+
+            tcsetattr(tty_fd, TCSANOW, &oldt);
+            close(tty_fd);
+        });
+    }
+
+    void stop_keyboard_thread()
+    {
+        keyboard_running_ = false;
+        if (keyboard_thread_.joinable())
+            keyboard_thread_.join();
     }
     
 
