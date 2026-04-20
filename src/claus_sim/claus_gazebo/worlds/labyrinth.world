@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+
+    <!-- Lighting -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/sun</uri>
+    </include>
+
+    <!-- Ground -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/ground%20plane</uri>
+    </include>
+
+    <!-- Table -->
+    <include>
+      <uri>model://table</uri>
+      <pose>0 -1.575 0 0 0 0</pose>
+      <name>table1</name>
+    </include> 
+
+    <include>
+      <uri>model://table</uri>
+      <pose>0 1.575 0 0 0 0</pose>
+      <name>table2</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>-1.7 3 0 0 0 1.5708</pose>
+      <name>table3</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>1.7 3 0 0 0 -1.5708</pose>
+      <name>table4</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>-2.5 -1.5750 0 0 0 0</pose>
+      <name>table5</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>1.7 -3 0 0 0 1.5708</pose>
+      <name>table6</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>4 0 0 0 0 1.5708</pose>
+      <name>table7</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>-4 3 0 0 0 -1.5708</pose>
+      <name>table8</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>-2.85 5 0 0 0 0</pose>
+      <name>table9</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>3.3 3.8 0 0 0 0</pose>
+      <name>table10</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>5.8 3.8 0 0 0 0</pose>
+      <name>table11</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>5.8 1.2 0 0 0 0</pose>
+      <name>table12</name>
+    </include>
+
+    <include>
+      <uri>model://table</uri>
+      <pose>2.5 -4.8 0 0 0 0</pose>
+      <name>table13</name>
+    </include>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"/>
+  </world>
+</sdf>

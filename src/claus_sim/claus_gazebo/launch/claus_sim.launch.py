@@ -18,7 +18,7 @@ def generate_launch_description():
     lab_base_pkg = FindPackageShare('lab_base')
 
     # World file
-    world = os.path.join(claus_gazebo_pkg, 'worlds', 'sim_environment.world')
+    world = os.path.join(claus_gazebo_pkg, 'worlds', 'labyrinth.world')
 
     # Models path
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
