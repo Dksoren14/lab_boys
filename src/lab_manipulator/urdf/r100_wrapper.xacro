@@ -8,8 +8,7 @@
   <xacro:r100/>
 
    <gazebo>
-     <plugin filename="gz-sim-diff-drive-system"
-            name="gz::sim::systems::DiffDrive">
+     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
 
       <left_joint>front_left_wheel_joint</left_joint>
       <left_joint>rear_left_wheel_joint</left_joint>

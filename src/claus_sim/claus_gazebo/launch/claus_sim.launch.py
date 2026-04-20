@@ -16,6 +16,7 @@ def generate_launch_description():
     claus_gazebo_pkg = get_package_share_directory('claus_gazebo')
     manipulator_pkg = FindPackageShare('lab_manipulator')
     lab_base_pkg = FindPackageShare('lab_base')
+    pkg_prefix = get_package_prefix("clearpath_platform_description")
 
     # World file
     world = os.path.join(claus_gazebo_pkg, 'worlds', 'empty.world')
@@ -25,6 +26,7 @@ def generate_launch_description():
     claus_description_path = get_package_share_directory('claus_description')
 
     resource_paths = ":".join([source_models, claus_description_path])
+    resource_path = os.path.join(pkg_prefix, "share")
     
     #Params
     params_path = PathJoinSubstitution([lab_base_pkg, 'config', 'setup_sim.yaml'])
@@ -32,12 +34,17 @@ def generate_launch_description():
     slam_params = PathJoinSubstitution([FindPackageShare("claus_nav"), "config", "mapper_params_online_async.yaml"])
 
     # Xacro path (portable)
-    xacro_file = PathJoinSubstitution([
-        FindPackageShare("claus_description"),
-        "urdf",
-        "ridgeback.urdf.xacro"
-    ])
+    #xacro_file = PathJoinSubstitution([
+    #    FindPackageShare("claus_description"),
+    #    "urdf",
+    #    "ridgeback.urdf.xacro"
+    #])
 
+    xacro_file = PathJoinSubstitution([
+        FindPackageShare("lab_manipulator"),
+        "urdf",
+        "r100_wrapper.xacro"
+    ])
     robot_description = ParameterValue(
         Command([
             "xacro ",
@@ -52,6 +59,14 @@ def generate_launch_description():
             name='GZ_SIM_RESOURCE_PATH',
             value=resource_paths
         )
+    set_gz_resources = SetEnvironmentVariable(
+        name="GZ_SIM_RESOURCE_PATH",
+        value=resource_path
+    )
+    set_localhost = SetEnvironmentVariable(
+        name='ROS_LOCALHOST_ONLY',
+        value='1'
+    )
     
     gazebo_world =  ExecuteProcess(
             cmd=['gz', 'sim', world, '-r'],
@@ -81,32 +96,24 @@ def generate_launch_description():
         ],
         output='screen'
     )
+    spawn_lab_robot = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=[
+            '-topic', 'robot_description',
+            '-name', 'r100',
+            '-x', '0',
+            '-y', '0',
+            '-z', '0.4'
+        ],
+        output='screen'
+    )
 
     spawn_robot_delayed = TimerAction(
             period=5.0,
             actions=[spawn_robot]
         )
 
-    static_map_odom = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-        output='screen'
-    )
-
-    static_odom_baselink = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', 'odom', '/odom'],
-        output='screen'
-    )
-
-    static_baselink_remap = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', '/base_link', 'base_link'],
-        output='screen'
-    )
 
     lab_base_node = Node(
         package='lab_base',
@@ -150,13 +157,17 @@ def generate_launch_description():
         executable='parameter_bridge',
         arguments=[
            '/world/default/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock',
-            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
             '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-            '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            #'/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
             #'/world/default/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',
+            '/model/r100/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            
         ],
         remappings=[
             ('/world/default/clock', '/clock'),
+            ('/model/r100/odometry', '/odom'),
+            ('/model/r100/cmd_vel', '/cmd_vel'),
         ],
         parameters=[{
             'qos_overrides./tf_static.publisher.durability': 'transient_local',  # ← match RSP
@@ -188,10 +199,11 @@ def generate_launch_description():
 
     return LaunchDescription([
         set_gz_resources,
+        set_localhost,
         gazebo_world,
         gazebo_topic,
         TimerAction(period=3.0, actions=[robot_state_publisher]),
-        TimerAction(period=6.0, actions=[spawn_robot, odom_to_tf_converter]),
+        TimerAction(period=6.0, actions=[spawn_lab_robot, odom_to_tf_converter]),
         TimerAction(period=10.0, actions=[lab_base_node]),
         TimerAction(period=20.0, actions=[nav2]),  # Nav2 owns SLAM now
     ])
