@@ -4,6 +4,9 @@
   <xacro:arg name="use_platform_controllers" default="false"/>
 
   <xacro:include filename="$(find clearpath_platform_description)/urdf/r100/r100.urdf.xacro"/>
+  <xacro:include filename="$(find claus_description)/urdf/accessories.urdf.xacro"/>
+  <xacro:property name="PI" value="3.1415926535897931"/> # Define PI for use in lidar for some reason
+  <xacro:include filename="$(find clearpath_sensors_description)/urdf/velodyne_lidar.urdf.xacro"/>
 
   <xacro:r100/>
 
@@ -24,6 +27,10 @@
     </plugin>
     </gazebo>
 
-
+  <xacro:velodyne_lidar
+    name="front_lidar"
+    parent_link="chassis_link">
+    <origin xyz="0.3999 0 0.2337" rpy="0 0 0"/>
+  </xacro:velodyne_lidar>
 
 </robot>

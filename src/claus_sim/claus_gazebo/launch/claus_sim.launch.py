@@ -79,7 +79,8 @@ def generate_launch_description():
         parameters=[{
             'robot_description': robot_description,
             'use_sim_time': True,
-            'publish_frequency': 50.0,   
+            'publish_frequency': 50.0, 
+            'frame_prefix': 'r100/',  
         }],
         output='screen'
     )
@@ -158,16 +159,18 @@ def generate_launch_description():
         arguments=[
            '/world/default/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock',
             '/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
-            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
             #'/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
             #'/world/default/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',
             '/model/r100/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             
         ],
         remappings=[
             ('/world/default/clock', '/clock'),
             ('/model/r100/odometry', '/odom'),
             ('/model/r100/cmd_vel', '/cmd_vel'),
+            ('/model/r100/tf', '/tf'), 
         ],
         parameters=[{
             'qos_overrides./tf_static.publisher.durability': 'transient_local',  # ← match RSP
@@ -203,7 +206,7 @@ def generate_launch_description():
         gazebo_world,
         gazebo_topic,
         TimerAction(period=3.0, actions=[robot_state_publisher]),
-        TimerAction(period=6.0, actions=[spawn_lab_robot, odom_to_tf_converter]),
+        TimerAction(period=6.0, actions=[spawn_lab_robot]),
         TimerAction(period=10.0, actions=[lab_base_node]),
         TimerAction(period=20.0, actions=[nav2]),  # Nav2 owns SLAM now
     ])
