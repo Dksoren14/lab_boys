@@ -34,7 +34,7 @@
       <update_rate>10</update_rate>
       <visualize>true</visualize>
       <topic>${topic}</topic>
-      <gz_frame_id>${prefix}_laser</gz_frame_id>
+      <gz_frame_id>r100/${prefix}_laser</gz_frame_id>
 
       <lidar>
         <scan>

@@ -9,6 +9,11 @@
   <xacro:include filename="$(find clearpath_sensors_description)/urdf/velodyne_lidar.urdf.xacro"/>
 
   <xacro:r100/>
+    <xacro:simple_lidar
+      prefix="front"
+      parent_link="chassis_link"
+      location="1"
+      topic="/sensors/front_lidar/scan"/>
 
    <gazebo>
      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
@@ -27,10 +32,14 @@
     </plugin>
     </gazebo>
 
-  <xacro:velodyne_lidar
-    name="front_lidar"
-    parent_link="chassis_link">
-    <origin xyz="0.3999 0 0.2337" rpy="0 0 0"/>
-  </xacro:velodyne_lidar>
+    <gazebo>
+      <plugin filename="gz-sim-joint-state-publisher-system"
+              name="gz::sim::systems::JointStatePublisher">
+               <update_rate>50</update_rate>
+      </plugin>
+    </gazebo>
+
+
+
 
 </robot>

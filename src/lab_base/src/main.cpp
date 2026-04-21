@@ -629,7 +629,7 @@ private:
                 if (key_left)  cmd_vel.angular.z =  ang_speed;
                 if (key_right) cmd_vel.angular.z = -ang_speed;
 
-                //cmd_vel_pub->publish(cmd_vel);
+                cmd_vel_pub->publish(cmd_vel);
                 
                 break;
             }

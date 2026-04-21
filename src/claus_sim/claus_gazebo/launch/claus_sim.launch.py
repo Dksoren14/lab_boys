@@ -19,14 +19,13 @@ def generate_launch_description():
     pkg_prefix = get_package_prefix("clearpath_platform_description")
 
     # World file
-    world = os.path.join(claus_gazebo_pkg, 'worlds', 'empty.world')
+    world = os.path.join(claus_gazebo_pkg, 'worlds', 'labyrinth.world')
 
     # Models path
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')
     claus_description_path = get_package_share_directory('claus_description')
 
-    resource_paths = ":".join([source_models, claus_description_path])
-    resource_path = os.path.join(pkg_prefix, "share")
+    resource_paths = ":".join([source_models, claus_description_path, os.path.join(pkg_prefix, "share")])
     
     #Params
     params_path = PathJoinSubstitution([lab_base_pkg, 'config', 'setup_sim.yaml'])
@@ -59,10 +58,7 @@ def generate_launch_description():
             name='GZ_SIM_RESOURCE_PATH',
             value=resource_paths
         )
-    set_gz_resources = SetEnvironmentVariable(
-        name="GZ_SIM_RESOURCE_PATH",
-        value=resource_path
-    )
+    
     set_localhost = SetEnvironmentVariable(
         name='ROS_LOCALHOST_ONLY',
         value='1'
@@ -82,6 +78,9 @@ def generate_launch_description():
             'publish_frequency': 50.0, 
             'frame_prefix': 'r100/',  
         }],
+        remappings=[
+        ('/joint_states', '/joint_states_throttled')  # ← consume throttled topic
+        ],
         output='screen'
     )
     # Spawn robot in Gazebo
@@ -151,6 +150,17 @@ def generate_launch_description():
         period=5.0,
         actions=[lab_base_node]
     )
+    throttle_joint_states = Node(
+    package='topic_tools',
+    executable='throttle',
+    arguments=[
+        'messages',
+        '/joint_states',  
+        '50.0',
+        '/joint_states_throttled'
+    ],
+    output='screen'
+)
 
     
     gazebo_topic = Node(
@@ -164,6 +174,7 @@ def generate_launch_description():
             '/model/r100/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
             '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+            '/world/default/model/r100/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
             
         ],
         remappings=[
@@ -171,6 +182,7 @@ def generate_launch_description():
             ('/model/r100/odometry', '/odom'),
             ('/model/r100/cmd_vel', '/cmd_vel'),
             ('/model/r100/tf', '/tf'), 
+            ('/world/default/model/r100/joint_state', '/joint_states'),
         ],
         parameters=[{
             'qos_overrides./tf_static.publisher.durability': 'transient_local',  # ← match RSP
@@ -206,7 +218,7 @@ def generate_launch_description():
         gazebo_world,
         gazebo_topic,
         TimerAction(period=3.0, actions=[robot_state_publisher]),
-        TimerAction(period=6.0, actions=[spawn_lab_robot]),
+        TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states]),
         TimerAction(period=10.0, actions=[lab_base_node]),
         TimerAction(period=20.0, actions=[nav2]),  # Nav2 owns SLAM now
     ])
