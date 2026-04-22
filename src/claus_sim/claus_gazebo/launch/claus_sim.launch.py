@@ -19,7 +19,7 @@ def generate_launch_description():
     pkg_prefix = get_package_prefix("clearpath_platform_description")
 
     # World file
-    world = os.path.join(claus_gazebo_pkg, 'worlds', 'labyrinth.world')
+    world = os.path.join(claus_gazebo_pkg, 'worlds', 'sim_environment.world')
 
     # Models path
     source_models = os.path.expanduser('~/lab_boys/src/claus_sim/claus_gazebo/models')

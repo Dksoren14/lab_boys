@@ -1,70 +1,9 @@
-Claus_sim:
+1. Lige nu bruger vi en simpel lidar, burde nok skiftes til en rigitg lidar fra acessory mappen
 
-1. Problemer med at robotten kun spawner i Gazebo 50% af tiden
+2. Vi publisher fra gazebo joint states med 1000hz hvilket fucker med cpu brugen.
 
-2. Problemer med at finde materialet som lyset på robotten er lavet ud af. 
-Ifølge warningen fra terminalen, så bruger den et materiale kaldet "clearpath_red/white". 
-Svar:
-Det her er fucking ligegyldigt. Det er bare fordi clearpath har lavet nogle farver som de ikke har smidt med på deres repository.
-Det samme var der med deres "clearpath_yellow" og "clearpath_black" Der har jeg bare manuelt gået ind i urdf filen og lavet:
-  <!-- Self defined colors-->
-  <material name="clearpath_dark_grey">
-  <color rgba="0.25 0.25 0.25 1"/>
-  </material>
+3. Odom viser vores position i forhold til bevægelse. Så hvis vi kører ind i noget, bliver posiitonen forkert
 
-  <material name="clearpath_black">
-    <color rgba="0.05 0.05 0.05 1"/>
-  </material>
+4. Vi har kun lidar foran. 
 
-  <material name="clearpath_light_grey">
-    <color rgba="0.7 0.7 0.7 1"/>
-  </material>
-
-  <material name="clearpath_yellow">
-    <color rgba="1.0 0.8 0.0 1"/>
-  </material>
-  <!-- R100 Platform Macro -->
-
-
-Hvis du går ind i :
-lab_boys/src/clearpath_common/clearpath_platform_description/urdf/r100/r100.urdf.xacro
-på linje 161, finder du materialet. Så laver du bare selv oppe i toppen. Det er legit bare farver, derfor Gazebo kun siger "warning"
-
-
-3. Warning ift. noget med koordinatsystemet på IMU'en. 
-Kan findes i urdf.xacro filen under clearpath_platform_description/urdf/r100/r100.urdf.xacro
-This one is also harmless:
-
-Comes from ROS ↔ Gazebo compatibility
-Gazebo just ignores it
-
-👉 You can safely ignore it for now
-
-Har ikke gjort noget iforhold til korrekt bevægelse indtil videre, så tror legit bare vi kan ignorere det indtil videre.
-
-
-4. Når jeg spawner robotten og køre "ros2 topic list" får vi ingen der hedder '/scan' 
-hvilket vil sige at der enten ikke er en lidar i urdf'en, eller at den ikke virker korrekt
-
-Ja hvis jeg ikke har bridged det vil det ikke komme som ros2 topic endnu. For at se hvad du får fra den direkte robot, hedder det:
-gz topic -l
-og så for at se hvad de spytter ud:
-gz topic -e -t <topic navnet>
-
-men kan se at den ikke alerede har lidar på. Tilgengæld ser det ud til at der allerede er pakker fra clear path til:
-LiDAR options
-hokuyo_ust.urdf.xacro
-sick_lms1xx.urdf.xacro
-ouster_os1.urdf.xacro
-velodyne_lidar.urdf.xacro
-seyond_lidar.urdf.xacro
-Kameraer
-intel_realsense
-luxonis_oakd
-zed
-axis_*
-
-Så skal vi bare bruge den rigtige og finde ud af hvor de skal linkes
-
-5. /odom mangler også som et topic. Tror dog det er et hurtig fix (Hopefully).
-Dont touch, no no fy fy. Har allerede lavet en bridge på development branchen. Vil show når vi begynder at vores branches mere. Først skal vi lige være helt sikker den her branch virker fint
+5. Nav2 virker ikke før map er lavet, og vi gemmer aldrig mappet i realtime
