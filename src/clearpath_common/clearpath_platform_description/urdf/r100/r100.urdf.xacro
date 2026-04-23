@@ -23,6 +23,12 @@
   <material name="clearpath_yellow">
     <color rgba="1.0 0.8 0.0 1"/>
   </material>
+  <material name="clearpath_white">
+    <color rgba="1.0 1.0 1.0 1"/>
+  </material>
+  <material name="clearpath_red">
+    <color rgba="1.0 0.0 0.0 1"/>
+  </material>
   <!-- R100 Platform Macro -->
   <xacro:macro name="r100" params="control:='omni_4wd' front_wheels:='mecanum' rear_wheels:='mecanum'">
     <!-- Variables -->
