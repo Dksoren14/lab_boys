@@ -29,6 +29,7 @@ def generate_launch_description():
     pkg_prefix = get_package_prefix('clearpath_platform_description')
     gui = LaunchConfiguration('gui')
     rviz = LaunchConfiguration('rviz')
+    lab_base = LaunchConfiguration('lab_base')
 
     world = os.path.join(claus_gazebo_pkg, 'worlds', 'sim_environment.world')
     rviz_config = os.path.join(claus_gazebo_pkg, 'rviz configs', 'default.rviz')
@@ -248,6 +249,11 @@ def generate_launch_description():
             default_value='false',
             description='Start RViz with the R100 simulation display config.',
         ),
+        DeclareLaunchArgument(
+            'lab_base',
+            default_value='true',
+            description='Start the lab_chassis node that publishes /cmd_vel.',
+        ),
         set_gz_resources,
         set_localhost_discovery,
         gazebo_server,
@@ -258,5 +264,9 @@ def generate_launch_description():
         TimerAction(period=8.0, actions=[rviz_node]),
         TimerAction(period=10.0, actions=[slam]),
         TimerAction(period=15.0, actions=[planner_server, planner_lifecycle_manager]),
-        TimerAction(period=28.0, actions=[lab_base_node]),
+        TimerAction(
+            period=28.0,
+            actions=[lab_base_node],
+            condition=IfCondition(lab_base),
+        ),
     ])
