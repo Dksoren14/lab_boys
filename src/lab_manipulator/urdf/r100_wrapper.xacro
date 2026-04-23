@@ -4,7 +4,7 @@
   <xacro:arg name="use_platform_controllers" default="false"/>
 
   <xacro:include filename="$(find clearpath_platform_description)/urdf/r100/r100.urdf.xacro"/>
-  <xacro:include filename="$(find claus_description)/urdf/accessories.urdf.xacro"/>
+  <xacro:include filename="$(find lab_manipulator)/urdf/accessories.urdf.xacro"/>
   <xacro:property name="PI" value="3.1415926535897931"/> # Define PI for use in lidar for some reason
   <xacro:include filename="$(find clearpath_sensors_description)/urdf/velodyne_lidar.urdf.xacro"/>
 
