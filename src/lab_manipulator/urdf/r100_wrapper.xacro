@@ -28,7 +28,9 @@
       <wheel_radius>0.0759</wheel_radius>
 
       <topic>/model/r100/cmd_vel</topic>
-
+      <covariance_x>0.001</covariance_x>
+      <covariance_y>0.001</covariance_y>
+      <covariance_yaw>0.001</covariance_yaw>
     </plugin>
     </gazebo>
 

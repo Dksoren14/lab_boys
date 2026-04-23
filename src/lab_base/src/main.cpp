@@ -515,57 +515,57 @@ private:
              
                 std::cout << "Global position updated: [" << current_position.x() << ", " << current_position.y() << ", " << current_position.z() << "]" << std::endl;
                 
-                ////Looking at how close waypoints are, if under accepted distance, skip
-                //while (current_waypoint_idx_ < (int)path_.size() - 1) {
-                //    auto &wp = path_[current_waypoint_idx_];
-                //    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
-                //    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
-                //        current_waypoint_idx_++;
-                //    } else {
-                //        break;
-                //    }
-                //}
-//
-//
-                //auto &way_point = path_[current_waypoint_idx_];
-                //target_position = Stamped3DVector(way_point.header.stamp, 
-                //                                    way_point.pose.position.x, 
-                //                                    way_point.pose.position.y, 
-                //                                    way_point.pose.position.z);
-//
-                //std::cout << "Waypoint " << current_waypoint_idx_ 
-                //          << " frame: " << way_point.header.frame_id
-                //          << " pos: " << way_point.pose.position.x 
-                //          << ", " << way_point.pose.position.y << std::endl;
-                //std::cout << "Current pos: " << current_position.x() 
-                //          << ", " << current_position.y() << std::endl;                         
-                //state_manager.setTargetPosition(target_position);
-                ////The linear controller
-                ////geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
-                ////    current_position,
-                ////    euler_angles,
-                ////    target_position,
-                ////    d_time,
-                ////    previous_velocity_error,
-                ////    previous_angle_error,
-                ////    global_velocity
-                ////);
-                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                //Looking at how close waypoints are, if under accepted distance, skip
+                while (current_waypoint_idx_ < (int)path_.size() - 1) {
+                    auto &wp = path_[current_waypoint_idx_];
+                    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
+                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
+                        current_waypoint_idx_++;
+                    } else {
+                        break;
+                    }
+                }
+
+
+                auto &way_point = path_[current_waypoint_idx_];
+                target_position = Stamped3DVector(way_point.header.stamp, 
+                                                    way_point.pose.position.x, 
+                                                    way_point.pose.position.y, 
+                                                    way_point.pose.position.z);
+
+                std::cout << "Waypoint " << current_waypoint_idx_ 
+                          << " frame: " << way_point.header.frame_id
+                          << " pos: " << way_point.pose.position.x 
+                          << ", " << way_point.pose.position.y << std::endl;
+                std::cout << "Current pos: " << current_position.x() 
+                          << ", " << current_position.y() << std::endl;                         
+                state_manager.setTargetPosition(target_position);
+                //The linear controller
+                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
                 //    current_position,
                 //    euler_angles,
                 //    target_position,
                 //    d_time,
-                //    previous_position_error,
-                //    previous_angle_error
+                //    previous_velocity_error,
+                //    previous_angle_error,
+                //    global_velocity
                 //);
-                //std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
-                //cmd_vel_pub->publish(cmd_vel);
-                //           
-                //if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
-                //    RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
-                //    state_manager.setControlMode(2); // Switch to precision mode
-                //    
-                //}
+                geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                    current_position,
+                    euler_angles,
+                    target_position,
+                    d_time,
+                    previous_position_error,
+                    previous_angle_error
+                );
+                std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
+                cmd_vel_pub->publish(cmd_vel);
+                           
+                if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
+                    RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
+                    state_manager.setControlMode(2); // Switch to precision mode
+                    
+                }
 
      
             }

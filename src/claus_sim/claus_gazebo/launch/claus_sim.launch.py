@@ -172,7 +172,7 @@ def generate_launch_description():
             #'/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
             #'/world/default/dynamic_pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V',
             '/model/r100/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
-            '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             '/world/default/model/r100/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
             
