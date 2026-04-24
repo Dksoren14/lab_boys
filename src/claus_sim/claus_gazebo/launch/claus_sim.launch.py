@@ -32,7 +32,7 @@ def generate_launch_description():
     lab_base = LaunchConfiguration('lab_base')
 
     world = os.path.join(claus_gazebo_pkg, 'worlds', 'sim_environment.world')
-    rviz_config = os.path.join(claus_gazebo_pkg, 'rviz configs', 'default.rviz')
+    rviz_config = os.path.join(claus_gazebo_pkg, 'rviz_configs', 'default.rviz')
 
     source_models = os.path.join(claus_gazebo_pkg, 'models')
     claus_description_prefix = get_package_prefix('claus_description')

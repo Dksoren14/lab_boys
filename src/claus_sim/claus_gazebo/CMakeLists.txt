@@ -26,6 +26,6 @@ endif()
 ament_package()
 
 install(
-  DIRECTORY launch models "rviz configs" worlds
+  DIRECTORY launch models rviz_configs worlds
   DESTINATION share/claus_gazebo
 )
