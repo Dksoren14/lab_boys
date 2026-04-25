@@ -7,9 +7,16 @@ slam_toolbox:
     scan_topic: /sensors/front_lidar/scan
     mode: mapping
     resolution: 0.05
+    throttle_scans: 1
     max_laser_range: 20.0
-    minimum_time_interval: 0.5
+    minimum_time_interval: 0.1
     transform_publish_period: 0.02
-    map_update_interval: 2.0
-    transform_timeout: 0.5        
-    tf_buffer_duration: 30.0  
+    map_update_interval: 0.5
+    transform_timeout: 1.0
+    tf_buffer_duration: 30.0
+    use_scan_matching: true
+    minimum_travel_distance: 0.05
+    minimum_travel_heading: 0.05
+    check_min_dist_and_heading_precisely: true
+    scan_buffer_size: 20
+    scan_buffer_maximum_scan_distance: 20.0
