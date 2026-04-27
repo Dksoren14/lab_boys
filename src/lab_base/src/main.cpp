@@ -42,7 +42,9 @@ public:
     controller(state_manager)
     {
         std::cout << "LabBaseNode initialized" << std::endl;
-
+        
+        this->declare_parameter<double>("turning_controller.kp", 1.0);
+        this->declare_parameter<double>("turning_controller.kd", 0.1);
         this->declare_parameter<double>("angular_controller.kp", 1.0);
         this->declare_parameter<double>("angular_controller.kd", 0.1);
         this->declare_parameter<double>("linear_controller.kp", 1.0);
@@ -53,6 +55,8 @@ public:
         this->declare_parameter<double>("target_distance.waypoint", 0.01);
         this->declare_parameter<double>("goal_distance.threshold", 0.1);
 
+        pid_turning_gains.kp = this->get_parameter("turning_controller.kp").as_double();
+        pid_turning_gains.kd = this->get_parameter("turning_controller.kd").as_double();
         pid_angular_gains.kp = this->get_parameter("angular_controller.kp").as_double();
         pid_angular_gains.kd = this->get_parameter("angular_controller.kd").as_double();
         pid_linear_gains.kp = this->get_parameter("linear_controller.kp").as_double();
@@ -63,6 +67,7 @@ public:
         accepted_distance.waypoint = this->get_parameter("target_distance.waypoint").as_double();
         goal_distance.threshold = this->get_parameter("goal_distance.threshold").as_double();
 
+        std::cout << "Controller gains: kp=" << pid_turning_gains.kp << ", kd=" << pid_turning_gains.kd << std::endl;
         std::cout << "Controller gains: kp=" << pid_angular_gains.kp << ", kd=" << pid_angular_gains.kd << std::endl;
         std::cout << "Controller gains: kp=" << pid_linear_gains.kp << ", kd=" << pid_linear_gains.kd << std::endl;
         std::cout << "Controller gains: kp=" << pid_linear_precision_gains.kp << ", kd=" << pid_linear_precision_gains.kd << std::endl;
@@ -104,7 +109,7 @@ public:
                  ~-<_(_.^-~"                            
 
 )" << std::endl;
-        controller.setGains(pid_linear_gains, pid_angular_gains, pid_linear_precision_gains);
+        controller.setGains(pid_turning_gains, pid_linear_gains, pid_angular_gains, pid_linear_precision_gains);
         // --- Quality of Service settings for subscriptions ---
         rclcpp::QoS qos(10);
         qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
@@ -160,6 +165,7 @@ private:
     PIDControllerGains pid_linear_gains;
     PIDControllerGains pid_angular_gains;
     PIDControllerGains pid_linear_precision_gains;
+    PIDControllerGains pid_turning_gains;
     TargetDistance accepted_distance;
     GoalDistance goal_distance;
     rclcpp::TimerBase::SharedPtr control_timer;
@@ -481,17 +487,43 @@ private:
             {
             //The turn controller
             if(!reached_target_angle){
-                 
+                
+                 //Another segmentation safety guard:
+                path_ = state_manager.getPath();
+                if (path_.empty()) {
+                    RCLCPP_WARN(this->get_logger(), "Path is empty, cannot execute goto command");
+                    return;
+                }
+
+             
+                
+                //Looking at how close waypoints are, if under accepted distance, skip
+                while (current_waypoint_idx_ < (int)path_.size() - 1) {
+                    auto &wp = path_[current_waypoint_idx_];
+                    Stamped3DVector wp_pos(wp.header.stamp, wp.pose.position.x, wp.pose.position.y, wp.pose.position.z);
+                    if (controller.euclidean_distance(current_position, wp_pos) < accepted_distance.waypoint) {
+                        current_waypoint_idx_++;
+                    } else {
+                        break;
+                    }
+                }
+
+
+                auto &way_point = path_[current_waypoint_idx_];
+                target_position = Stamped3DVector(way_point.header.stamp, 
+                                                    way_point.pose.position.x, 
+                                                    way_point.pose.position.y, 
+                                                    way_point.pose.position.z);
+
+                state_manager.setTargetPosition(target_position);
+                
                 TurnResult cmd_vel_angular = controller.turn_controller(
                     euler_angles, 
                     target_position,
                     current_position,
                     d_time, 
                     previous_angle_error);
-                std::cout << "TURNING - euler_angles.z=" << euler_angles.z() 
-                      << " target=(" << target_position.x() << "," << target_position.y() << ")"
-                      << " angle_error=" << cmd_vel_angular.angle_error << std::endl;
-                    
+
                 cmd_vel_angular.cmd.linear.x = 0.0;
                 cmd_vel_pub->publish(cmd_vel_angular.cmd);
                 
@@ -513,7 +545,6 @@ private:
                 }
 
              
-                std::cout << "Global position updated: [" << current_position.x() << ", " << current_position.y() << ", " << current_position.z() << "]" << std::endl;
                 
                 //Looking at how close waypoints are, if under accepted distance, skip
                 while (current_waypoint_idx_ < (int)path_.size() - 1) {
@@ -540,25 +571,26 @@ private:
                 std::cout << "Current pos: " << current_position.x() 
                           << ", " << current_position.y() << std::endl;                         
                 state_manager.setTargetPosition(target_position);
+                std::cout << "TARGET POSITION = (" << target_position.x() << ", " << target_position.y() << ")" << std::endl;
                 //The linear controller
-                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
-                //    current_position,
-                //    euler_angles,
-                //    target_position,
-                //    d_time,
-                //    previous_velocity_error,
-                //    previous_angle_error,
-                //    global_velocity
-                //);
-                geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
                     current_position,
                     euler_angles,
                     target_position,
                     d_time,
-                    previous_position_error,
-                    previous_angle_error
+                    previous_velocity_error,
+                    previous_angle_error,
+                    global_velocity
                 );
-                std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
+                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
+                //    current_position,
+                //    euler_angles,
+                //    target_position,
+                //    d_time,
+                //    previous_position_error,
+                //    previous_angle_error
+                //);
+                //std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
                 cmd_vel_pub->publish(cmd_vel);
                            
                 if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
@@ -573,29 +605,29 @@ private:
             }
         case 2: 
         {
-            //// Final precision controller, looking only at goal
-            //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
-            //        current_position,
-            //        euler_angles,
-            //        goal_position,
-            //        d_time,
-            //        previous_position_error,
-            //        previous_angle_error
-            //    );
-            //    cmd_vel_pub->publish(cmd_vel);
-            //if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
-            //        RCLCPP_INFO(this->get_logger(), "Target position reached");
-            //        cmd_vel.linear.x = 0.0;
-            //        cmd_vel.angular.z = 0.0;
-            //        Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-            //        state_manager.setTargetPosition(target_profile);
-            //        reached_target_angle = false;
-            //        previous_position_error.X.error = 0.0;
-            //        previous_angle_error.Z.error = 0.0;
-            //        cmd_vel_pub->publish(cmd_vel);
-            //        current_waypoint_idx_ = 0;
-            //        stop_control_loop();
-            //        }    
+            // Final precision controller, looking only at goal
+            geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
+                    current_position,
+                    euler_angles,
+                    goal_position,
+                    d_time,
+                    previous_position_error,
+                    previous_angle_error
+                );
+                cmd_vel_pub->publish(cmd_vel);
+            if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
+                    RCLCPP_INFO(this->get_logger(), "Target position reached");
+                    cmd_vel.linear.x = 0.0;
+                    cmd_vel.angular.z = 0.0;
+                    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+                    state_manager.setTargetPosition(target_profile);
+                    reached_target_angle = false;
+                    previous_position_error.X.error = 0.0;
+                    previous_angle_error.Z.error = 0.0;
+                    cmd_vel_pub->publish(cmd_vel);
+                    current_waypoint_idx_ = 0;
+                    stop_control_loop();
+                    }    
             break;
         }
         case 3: // stop
@@ -621,7 +653,7 @@ private:
                     start_keyboard_thread();
 
                 geometry_msgs::msg::Twist cmd_vel;
-                const double lin_speed = 0.3;
+                const double lin_speed = 0.9;
                 const double ang_speed = 1.0;
 
                 if (key_up)    cmd_vel.linear.x  =  lin_speed;
