@@ -32,34 +32,13 @@ git switch development
 
 
 ### To make the robot move:
-
+Testing without the use of the control system
+```
 ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.5}, angular: {z: 0.0}}"
-
-ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
-
-```
-cd setup
-chmod +x setup.sh
-./setup.sh
 ```
 
-tilføj sudo apt update
-
-sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
-
-pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
-2. Source ros:
-```
-source install/setup.bash
-```
-
-3. Run lab_manipulator main code:
-```
-ros2 run lab_manipulator lab_arm
-```
-
-### Launch Gazebo Simulation
+### Launch Gazebo Simulation:
 This opens Gazebo with a simulated environment of the lab, with the R100(Ridgeback)
 
 1. Build workspace (If the code has changed):
@@ -72,8 +51,30 @@ colcon build
 source install/setup.bash
 ```
 
-3. Use the launch script, to launch gazebo:
+3. Use the launch script, to launch gazebo and rviz2:
 ```
-ros2 launch claus_gazebo world.launch.py
+ros2 launch claus_gazebo claus_sim.launch.py rviz:=true gui:=true lab_base:=true
 ```
-sudo apt install ros-jazzy-lms1xx
+4. Manually moving the robot
+In another terminal write, then tap on the original terminal to make the robot move using WASD
+```
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
+```
+5. Save the map
+In a new terminal. {mapname} is just a placeholder for the name of the file. This should just be changed when saving the map to "laboratory" fx.
+```
+ros2 run nav2_map_server map_saver_cli -f ~/lab_boys/src/claus_sim/claus_gazebo/maps/{mapname}
+```
+
+### NOTE TIL SIG SELV (Søren)/Setup script:
+```
+cd setup
+chmod +x setup.sh
+./setup.sh
+```
+
+tilføj sudo apt update
+
+sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
+
+pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
