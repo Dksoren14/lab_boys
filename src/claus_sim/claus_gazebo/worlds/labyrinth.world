@@ -91,6 +91,108 @@
       <name>table13</name>
     </include>
 
+    <model name="wall1">
+      <static>true</static>
+      <pose>7.5 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall2">
+      <static>true</static>
+      <pose>0 7 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall3">
+      <static>true</static>
+      <pose>0 -7 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall4">
+      <static>true</static>
+      <pose>-5.5 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>15 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+
+
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
