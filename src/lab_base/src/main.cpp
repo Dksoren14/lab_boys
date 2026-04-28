@@ -488,7 +488,7 @@ private:
             //The turn controller
             if(!reached_target_angle){
                 
-                 //Another segmentation safety guard:
+                 //Another segmentation safety guard: wow
                 path_ = state_manager.getPath();
                 if (path_.empty()) {
                     RCLCPP_WARN(this->get_logger(), "Path is empty, cannot execute goto command");
