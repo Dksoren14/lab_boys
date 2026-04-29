@@ -7,6 +7,32 @@
   <xacro:include filename="$(find clearpath_platform_description)/urdf/r100/r100.urdf.xacro"/>
   <xacro:include filename="$(find lab_manipulator)/urdf/accessories.urdf.xacro"/>
 
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+
+
+  <link name="mounting_structure_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+      <geometry>
+        <mesh filename="package://lab_manipulator/meshes/mounting_structure.STL"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://lab_manipulator/meshes/mounting_structure.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="mounting_structure_joint" type="fixed">
+    <parent link="default_mount"/>
+    <child link="mounting_structure_link"/>
+    <origin xyz="0.0 0.0 -0.006" rpy="0 0 0"/>
+  </joint>
+
 
   <xacro:r100/>
     <xacro:simple_lidar

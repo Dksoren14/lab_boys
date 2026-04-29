@@ -9,7 +9,7 @@
 
   <!-- Self defined colors-->
   <material name="clearpath_dark_grey">
-  <color rgba="0.25 0.25 0.25 1"/>
+    <color rgba="0.25 0.25 0.25 1"/>
   </material>
 
   <material name="clearpath_black">
