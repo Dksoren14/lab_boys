@@ -227,6 +227,9 @@ def generate_launch_description():
             '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             '/world/default/model/r100/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/front_realsense/image@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/front_realsense/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/front_realsense/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked'
         ],
         remappings=[
             ('/world/default/clock', '/clock'),

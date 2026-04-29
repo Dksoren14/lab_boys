@@ -6,6 +6,7 @@
   <xacro:property name="PI" value="3.1415926535897931"/> 
   <xacro:include filename="$(find clearpath_platform_description)/urdf/r100/r100.urdf.xacro"/>
   <xacro:include filename="$(find lab_manipulator)/urdf/accessories.urdf.xacro"/>
+  <xacro:include filename="$(find clearpath_sensors_description)/urdf/intel_realsense.urdf.xacro"/>
 
   <material name="black">
     <color rgba="0 0 0 1"/>
@@ -32,6 +33,84 @@
     <child link="mounting_structure_link"/>
     <origin xyz="0.0 0.0 -0.006" rpy="0 0 0"/>
   </joint>
+
+
+
+  <!-- Base camera frame -->
+  <link name="front_realsense" />
+
+  <!-- Gazebo optical frame fix -->
+  <link name="front_realsense_gazebo" />
+  <joint name="front_realsense_gazebo_joint" type="fixed">
+    <parent link="front_realsense"/>
+    <child link="front_realsense_gazebo"/>
+    <!-- Same rotation as before -->
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
+
+  <!-- Gazebo Harmonic RGBD camera -->
+  <gazebo reference="front_realsense">
+    <sensor name="front_realsense" type="rgbd_camera">
+      
+      <always_on>true</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+
+      <camera>
+        <horizontal_fov>1.5184351667</horizontal_fov>
+
+        <image>
+          <width>640</width>
+          <height>480</height>
+        </image>
+
+        <clip>
+          <near>0.01</near>
+          <far>50.0</far>
+        </clip>
+
+        <!-- IMPORTANT -->
+        <optical_frame_id>front_realsense_gazebo</optical_frame_id>
+      </camera>
+
+      <!-- Depth settings -->
+      <depth_camera>
+        <clip>
+          <near>0.105</near>
+          <far>8.0</far>
+        </clip>
+      </depth_camera>
+
+      <!-- ROS 2 topic bridge compatibility -->
+      <topic>front_realsense</topic>
+
+    </sensor>
+  </gazebo>
+
+  <!-- Visual mesh (unchanged) -->
+  <link name="front_realsense_lens">
+    <visual>
+      <origin xyz="0.02 0 0" rpy="${pi/2} 0 ${pi/2}" />
+      <geometry>
+        <mesh filename="package://lab_manipulator/meshes/d435.dae" />
+      </geometry>
+      <material name="white" />
+    </visual>
+  </link>
+
+  <!-- Mounting (unchanged) -->
+  <joint type="fixed" name="front_realsense_lens_joint">
+    <origin xyz="0.44 0 0.5815" rpy="0 0 0" />
+    <parent link="default_mount" />
+    <child link="front_realsense_lens" />
+  </joint>
+
+  <joint type="fixed" name="front_realsense_joint">
+    <origin xyz="0.025 0 0" rpy="0 0 0" />
+    <parent link="front_realsense_lens" />
+    <child link="front_realsense" />
+  </joint>
+
 
 
   <xacro:r100/>
