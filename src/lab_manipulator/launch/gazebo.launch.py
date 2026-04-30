@@ -135,6 +135,10 @@ def generate_launch_description():
             ("map", PathJoinSubstitution([lab_base_pkg, 'config', 'empty_map.yaml'])) 
         ]
     )
+    nav2_delay = TimerAction(
+        period=10.0,
+        actions=[nav2]
+    )
 
     lab_base_delayed = TimerAction(
         period=5.0,
@@ -171,8 +175,9 @@ def generate_launch_description():
         static_odom_baselink,
         static_baselink_remap,
         spawn_robot_delayed,
-        nav2,              # nav2_bringup handles map_server via the map argument
+                    # nav2_bringup handles map_server via the map argument
         lab_manipulator_node,
         lab_base_delayed,
+        nav2_delay,
         gazebo_topic
     ])
