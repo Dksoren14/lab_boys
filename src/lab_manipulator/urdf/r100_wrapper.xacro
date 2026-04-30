@@ -120,6 +120,12 @@
       location="1"
       topic="/sensors/front_lidar/scan"/>
 
+      <xacro:simple_lidar
+        prefix="rear"
+        parent_link="chassis_link"
+        location="-1"
+        topic="/sensors/rear_lidar/scan"/>
+
    <gazebo>
      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
 

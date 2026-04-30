@@ -69,7 +69,7 @@ controller_server:
     controller_plugins: ["FollowPath"]
     use_realtime_priority: false
     progress_checker:
-      plugin: "nav2_controller::SimpleProgressChecker"
+      plugin: "nav2_controller::SimpleProgressChecker" 
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
     general_goal_checker:

@@ -225,6 +225,7 @@ def generate_launch_description():
             '/model/r100/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
             '/model/r100/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             '/sensors/front_lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+            '/sensors/rear_lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             '/world/default/model/r100/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
             '/front_realsense/image@sensor_msgs/msg/Image@gz.msgs.Image',
@@ -242,6 +243,24 @@ def generate_launch_description():
             'qos_overrides./tf_static.publisher.durability': 'transient_local',
         }],
         output='screen',
+    )
+    lidar_merger =Node(
+        package='ira_laser_tools',
+        executable='laserscan_multi_merger',
+        name='laserscan_multi_merger',
+        parameters=[{
+            'use_sim_time': True,
+            'destination_frame': 'r100/chassis_link',
+            'cloud_destination_topic': '/merged_cloud',
+            'scan_destination_topic': '/scan',
+            'laserscan_topics': 'sensors/front_lidar/scan sensors/rear_lidar/scan',
+            'angle_min': -3.14159,
+            'angle_max':  3.14159,
+            'angle_increment': 0.0087,  # ~0.5 degree resolution (720 samples / 360°)
+            'scan_time': 0.1,           # matches your 10hz update rate
+            'range_min': 0.05,          # matches your lidar range min
+            'range_max': 20.0,          # matches your lidar range max
+        }]
     )
 
     return LaunchDescription([
@@ -266,7 +285,7 @@ def generate_launch_description():
         gazebo_gui,
         gazebo_topic,
         TimerAction(period=3.0, actions=[robot_state_publisher]),
-        TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states]),
+        TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states, lidar_merger]),
         TimerAction(period=8.0, actions=[rviz_node]),
         TimerAction(period=10.0, actions=[slam]),
         TimerAction(period=15.0, actions=[planner_server, planner_lifecycle_manager]),

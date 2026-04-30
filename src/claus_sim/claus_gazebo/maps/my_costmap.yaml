@@ -1,0 +1,7 @@
+image: my_costmap.pgm
+mode: raw
+resolution: 0.050
+origin: [-11.150, -9.800, 0]
+negate: 0
+occupied_thresh: 0.650
+free_thresh: 0.250

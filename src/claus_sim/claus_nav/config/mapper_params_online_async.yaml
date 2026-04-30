@@ -4,9 +4,9 @@ slam_toolbox:
     base_frame: r100/base_link
     odom_frame: r100/odom
     map_frame: map
-    scan_topic: /sensors/front_lidar/scan
+    scan_topic: /scan
     mode: mapping
-    resolution: 0.05
+    resolution: 0.05 
     throttle_scans: 1
     max_laser_range: 20.0
     minimum_time_interval: 0.1
