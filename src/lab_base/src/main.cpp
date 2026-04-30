@@ -192,7 +192,7 @@ private:
 
     Stamped3DVector goal_position;
 
-    bool key_up = false, key_down = false, key_left = false, key_right = false;
+    bool key_up = false, key_down = false, key_left = false, key_right = false, key_side_left = false, key_side_right = false;
     std::thread keyboard_thread_;
     bool keyboard_running_ = false;
 
@@ -660,6 +660,8 @@ private:
                 if (key_down)  cmd_vel.linear.x  = -lin_speed;
                 if (key_left)  cmd_vel.angular.z =  ang_speed;
                 if (key_right) cmd_vel.angular.z = -ang_speed;
+                if (key_side_left)  cmd_vel.linear.y =  lin_speed; 
+                if (key_side_right) cmd_vel.linear.y = -lin_speed; 
 
                 cmd_vel_pub->publish(cmd_vel);
                 
@@ -705,7 +707,7 @@ private:
 
             while (keyboard_running_)
             {
-                key_up = key_down = key_left = key_right = false;
+                key_up = key_down = key_left = key_right = key_side_left = key_side_right = false;
                 char c;
                 while (read(tty_fd, &c, 1) > 0)
                 {
@@ -715,7 +717,8 @@ private:
                         case 's': key_down  = true; break;
                         case 'a': key_left  = true; break;
                         case 'd': key_right = true; break;
-                        case 'q': keyboard_running_ = false; break;
+                        case 'q': key_side_left = true; break; 
+                        case 'e': key_side_right = true; break; 
                     }
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));

@@ -126,27 +126,24 @@
         location="-1"
         topic="/sensors/rear_lidar/scan"/>
 
-   <gazebo>
-     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
-
-      <left_joint>front_left_wheel_joint</left_joint> 
-      <left_joint>rear_left_wheel_joint</left_joint>
-
-      <right_joint>front_right_wheel_joint</right_joint>
-      <right_joint>rear_right_wheel_joint</right_joint>
-
+  <gazebo>
+    <plugin filename="gz-sim-mecanum-drive-system" name="gz::sim::systems::MecanumDrive">
+      <front_left_joint>front_left_wheel_joint</front_left_joint>
+      <front_right_joint>front_right_wheel_joint</front_right_joint>
+      <back_left_joint>rear_left_wheel_joint</back_left_joint>
+      <back_right_joint>rear_right_wheel_joint</back_right_joint>
       <wheel_separation>0.551</wheel_separation>
+      <wheelbase>0.638</wheelbase>
       <wheel_radius>0.0759</wheel_radius>
-
       <topic>/model/r100/cmd_vel</topic>
-      <odom_topic>/model/r100/diff_drive/odometry</odom_topic>
-      <tf_topic>/model/r100/diff_drive/tf</tf_topic>
+      <odom_topic>/model/r100/mecanum_drive/odometry</odom_topic>
+      <tf_topic>/model/r100/mecanum_drive/tf</tf_topic>
       <odom_publish_frequency>50</odom_publish_frequency>
       <covariance_x>0.001</covariance_x>
       <covariance_y>0.001</covariance_y>
       <covariance_yaw>0.001</covariance_yaw>
     </plugin>
-    </gazebo>
+  </gazebo>
 
     <gazebo>
       <plugin filename="gz-sim-odometry-publisher-system"
