@@ -90,7 +90,7 @@
   <!-- Visual mesh (unchanged) -->
   <link name="front_realsense_lens">
     <visual>
-      <origin xyz="0.02 0 0" rpy="${pi/2} 0 ${pi/2}" />
+      <origin xyz="0.02 0 0" rpy="${pi/2} 1.0471975512 ${pi/2}" />
       <geometry>
         <mesh filename="package://lab_manipulator/meshes/d435.dae" />
       </geometry>
