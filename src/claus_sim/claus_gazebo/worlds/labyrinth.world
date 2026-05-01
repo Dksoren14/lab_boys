@@ -91,6 +91,19 @@
       <name>table13</name>
     </include>
 
+    <include>
+      <uri>model://aruco_marker_20</uri>
+      <name>aruco_marker_20</name>
+      <pose>2.0 0.0 0.5 0 0 3.14159</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_21</uri>
+      <name>aruco_marker_21</name>
+      <pose>4.0 1.0 0.5 0 0 1.5708</pose>
+    </include>
+
+
     <model name="wall1">
       <static>true</static>
       <pose>7.5 0 1 0 0 1.57</pose>
