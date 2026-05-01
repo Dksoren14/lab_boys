@@ -3,9 +3,9 @@ from threading import Lock
 import rclpy
 from rclpy.node import Node
 
-from geometry_msgs.msg import PoseArray, Pose
+from geometry_msgs.msg import Pose
 from sensor_msgs.msg import Image
-from interfaces.msg import BaseState
+from nav_msgs.msg import Odometry
 
 from cv_bridge import CvBridge
 
@@ -46,24 +46,11 @@ class ArucoSensorNode(Node):
 
         self.T_base_cam = create_t_base_cam(self.config)
 
-        qos = rclpy.qos.QoSProfile(
-            depth=10,
-            reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
-            durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE
-        )
-
-        self.base_global_position_sub = self.create_subscription(
-            PoseArray,
-            '/world/car_world/dynamic_pose/info',
-            self.global_callback,
-            qos
-        )
-
-        self.base_global_orientation_sub = self.create_subscription(
-            BaseState,
-            '/lab_boys/out/base_state',
-            self.orientation_callback,
-            qos
+        self.odom_sub = self.create_subscription(
+            Odometry,
+            '/odom',
+            self.odom_callback,
+            10
         )
 
         self.image_topic = "/front_realsense/image"
@@ -82,28 +69,36 @@ class ArucoSensorNode(Node):
         )
 
         self.last_image_received = False
+        self.last_odom_received = False
 
         self.create_timer(2.0, self.camera_watchdog)
 
         self.get_logger().info("Simulation ArUco sensor node started")
         self.get_logger().info(f"Subscribing to image topic: {self.image_topic}")
+        self.get_logger().info("Subscribing to odom topic: /odom")
+        self.get_logger().info("Publishing marker pose to: /aruco_marker_pose")
 
 
-    def global_callback(self, msg):
-        if len(msg.poses) == 0:
-            return
+    def odom_callback(self, msg):
+        position = msg.pose.pose.position
+        orientation = msg.pose.pose.orientation
+
+        yaw = quaternion_to_yaw(
+            orientation.x,
+            orientation.y,
+            orientation.z,
+            orientation.w
+        )
 
         with self.lock:
             self.g_pose = [
-                msg.poses[0].position.x,
-                msg.poses[0].position.y,
-                msg.poses[0].position.z
+                position.x,
+                position.y,
+                position.z
             ]
 
-
-    def orientation_callback(self, msg):
-        with self.lock:
-            self.g_orientation = msg.orientation[2]
+            self.g_orientation = yaw
+            self.last_odom_received = True
 
 
     def image_callback(self, msg):
@@ -137,6 +132,10 @@ class ArucoSensorNode(Node):
             with self.lock:
                 g_pose = self.g_pose.copy()
                 g_orientation = self.g_orientation
+                odom_ready = self.last_odom_received
+
+            if not odom_ready:
+                self.get_logger().warn("No odom received yet. Marker pose may be wrong.")
 
             for i in range(len(ids)):
                 marker_id = int(ids[i][0])
@@ -186,6 +185,16 @@ class ArucoSensorNode(Node):
                     -1
                 )
 
+                cv2.putText(
+                    frame,
+                    f"ID {marker_id}",
+                    (center_x + 5, center_y - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 255),
+                    2
+                )
+
         cv2.imshow("Sim ArUco Marker", frame)
         cv2.waitKey(1)
 
@@ -214,6 +223,11 @@ class ArucoSensorNode(Node):
                 f"No image received yet. Check that the topic exists: {self.image_topic}"
             )
 
+        if not self.last_odom_received:
+            self.get_logger().warn(
+                "No odom received yet. Check that /odom is publishing."
+            )
+
 
 def get_config():
     return {
@@ -224,10 +238,9 @@ def get_config():
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
         "marker_size_IRL": 0.162,
 
-        # This must match the simulated camera pose relative to the robot base.
+        # Simulated camera pose relative to robot base.
+        # If pose is stable but offset later, tune these.
         "camera_position_base": [0.465, 0.0, 0.8765],
-
-        # This must match the simulated camera pitch.
         "camera_pitch_down_deg": 60.0
     }
 
@@ -301,6 +314,13 @@ def matrix_transformation(T_base_cam, T_cam_marker, g_pose, g_orientation):
     T_world_marker = T_world_base @ T_base_cam @ T_cam_marker
 
     return T_world_marker
+
+
+def quaternion_to_yaw(x, y, z, w):
+    siny_cosp = 2.0 * (w * z + x * y)
+    cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
+
+    return np.arctan2(siny_cosp, cosy_cosp)
 
 
 def rotation_matrix_to_quaternion(R):
