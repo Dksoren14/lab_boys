@@ -106,7 +106,7 @@
   </joint>
 
   <joint type="fixed" name="front_realsense_joint">
-    <origin xyz="0.025 0 0" rpy="0 -1.0471975512 0" />
+    <origin xyz="0.025 0 0" rpy="0 1.0471975512 0" />
     <parent link="front_realsense_lens" />
     <child link="front_realsense" />
   </joint>
