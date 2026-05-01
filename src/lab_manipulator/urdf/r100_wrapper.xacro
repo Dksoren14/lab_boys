@@ -90,7 +90,7 @@
   <!-- Visual mesh (unchanged) -->
   <link name="front_realsense_lens">
     <visual>
-      <origin xyz="0.02 0 0" rpy="${pi/2} 1.0471975512 ${pi/2}" />
+      <origin xyz="0.02 0 0" rpy="${pi/2} 0 ${pi/2}" />
       <geometry>
         <mesh filename="package://lab_manipulator/meshes/d435.dae" />
       </geometry>
@@ -100,13 +100,13 @@
 
   <!-- Mounting (unchanged) -->
   <joint type="fixed" name="front_realsense_lens_joint">
-    <origin xyz="0.44 0 0.5815" rpy="0 0 0" />
+    <origin xyz="0.44 0 0.5815" rpy="0 1.0471975512 0" />
     <parent link="default_mount" />
     <child link="front_realsense_lens" />
   </joint>
 
   <joint type="fixed" name="front_realsense_joint">
-    <origin xyz="0.025 0 0" rpy="0 1.0471975512 0" />
+    <origin xyz="0.025 0 0" rpy="0 0 0" />
     <parent link="front_realsense_lens" />
     <child link="front_realsense" />
   </joint>
