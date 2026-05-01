@@ -74,7 +74,10 @@ def get_config():
         "fps": 30,
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
         "marker_size": 800,
-        "marker_size_IRL": 0.162    }
+        "marker_size_IRL": 0.162,
+        "camera_position_base": [0.465, 0.0, 0.8765],    
+        "camera_pitch_down_deg": 60.0
+        }
 
 def detect_markers(config, node):
     aruco_dict = cv2.aruco.getPredefinedDictionary(config["aruco_dict_type"])
@@ -105,6 +108,7 @@ def detect_markers(config, node):
         [half_len, -half_len, 0],
         [-half_len, -half_len, 0]
     ], dtype=np.float32)
+    T_base_cam = create_t_base_cam(config)
 
     try:
         while True:
@@ -140,7 +144,7 @@ def detect_markers(config, node):
                         T_cam_marker = np.eye(4, dtype=np.float32)
                         T_cam_marker[:3, :3] = R
                         T_cam_marker[:3, 3] = tvec.flatten()
-                        T_world_marker = matrix_transformation(T_cam_marker, g_pose, g_orientation)
+                        T_world_marker = matrix_transformation(T_base_cam, T_cam_marker, g_pose, g_orientation)
                         node.publish_marker_pose(T_world_marker)
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
@@ -155,7 +159,26 @@ def detect_markers(config, node):
         pipe.stop()
         cv2.destroyAllWindows()
 
-def matrix_transformation(T_cam_marker, g_pose, g_orientation):
+def create_t_base_cam(config):
+    camera_position = np.array(config["camera_position_base"], dtype=np.float32)
+    pitch_down = np.deg2rad(config["camera_pitch_down_deg"])
+
+    c = np.cos(pitch_down)
+    s = np.sin(pitch_down)
+
+    R_base_cam = np.array([
+        [0, -s,  c],
+        [-1, 0,  0],
+        [0, -c, -s]
+    ], dtype=np.float32)
+
+    T_base_cam = np.eye(4, dtype=np.float32)
+    T_base_cam[:3, :3] = R_base_cam
+    T_base_cam[:3, 3] = camera_position
+
+    return T_base_cam
+
+def matrix_transformation(T_base_cam, T_cam_marker, g_pose, g_orientation):
     R_world_base = np.array([
         [np.cos(g_orientation), -np.sin(g_orientation), 0],
         [np.sin(g_orientation),  np.cos(g_orientation), 0],
@@ -166,10 +189,6 @@ def matrix_transformation(T_cam_marker, g_pose, g_orientation):
     T_world_base[:3, :3] = R_world_base
     T_world_base[:3, 3] = g_pose
 
-    # Camera pose in base
-    # THESE VALUES ARE PLACEHOLDERS
-    T_base_cam = np.eye(4, dtype=np.float32)
-    T_base_cam[:3, 3] = [0.20, 0.0, 0.35]
 
     T_world_marker = T_world_base @ T_base_cam @ T_cam_marker
 
