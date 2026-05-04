@@ -44,28 +44,8 @@ ament_target_dependencies(lab_arm
 )
 
 # Install the executable
-install(TARGETS lab_arm
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# Install launch files
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
-
-# Install world
-install(DIRECTORY worlds
-  DESTINATION share/${PROJECT_NAME}
-)
-
-install(DIRECTORY urdf
-  DESTINATION share/${PROJECT_NAME}
-)
-
-install(DIRECTORY meshes
-  DESTINATION share/${PROJECT_NAME}
-)
+#install(TARGETS lab_arm
+#DESTINATION lib/${PROJECT_NAME})
 
 # Ament package
 ament_package()

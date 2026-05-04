@@ -55,7 +55,7 @@ source install/setup.bash
 ```
 ros2 launch claus_gazebo claus_sim.launch.py rviz:=true gui:=true lab_base:=true
 ```
-updated: 
+UPDATED: 
 ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
 ```
 4. Manually moving the robot
@@ -64,7 +64,7 @@ In another terminal write, then tap on the original terminal to make the robot m
 ```
 ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
 ```
-updated:
+UPDATED:
 ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
 
 5. Save the map

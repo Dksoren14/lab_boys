@@ -5,7 +5,7 @@
 
   <xacro:property name="PI" value="3.1415926535897931"/> 
   <xacro:include filename="$(find clearpath_platform_description)/urdf/r100/r100.urdf.xacro"/>
-  <xacro:include filename="$(find lab_manipulator)/urdf/accessories.urdf.xacro"/>
+  <xacro:include filename="$(find claus)/urdf/accessories.urdf.xacro"/>
   <xacro:include filename="$(find clearpath_sensors_description)/urdf/intel_realsense.urdf.xacro"/>
 
   <material name="black">
@@ -18,13 +18,13 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="black"/>
       <geometry>
-        <mesh filename="package://lab_manipulator/meshes/mounting_structure.STL"/>
+        <mesh filename="package://claus/meshes/mounting_structure.STL"/>
       </geometry>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://lab_manipulator/meshes/mounting_structure.STL"/>
+        <mesh filename="package://claus/meshes/mounting_structure.STL"/>
       </geometry>
     </collision>
   </link>
@@ -92,7 +92,7 @@
     <visual>
       <origin xyz="0.02 0 0" rpy="${pi/2} 1.0471975512 ${pi/2}" />
       <geometry>
-        <mesh filename="package://lab_manipulator/meshes/d435.dae" />
+        <mesh filename="package://claus/meshes/d435.dae" />
       </geometry>
       <material name="white" />
     </visual>

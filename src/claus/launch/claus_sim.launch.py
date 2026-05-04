@@ -45,7 +45,7 @@ def generate_launch_description():
         os.path.join(lab_mani_prefix, 'share'),
         ':',
         EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
-    ]
+    ]#-CHECK
 
     params_path = PathJoinSubstitution([control_pkg, 'config', 'setup_sim.yaml']) #CHECK-
     params_nav2 = PathJoinSubstitution([control_pkg, 'config', 'nav2_params.yaml'])
@@ -56,7 +56,7 @@ def generate_launch_description():
     ]) #-CHECK
 
     xacro_file = PathJoinSubstitution([
-        FindPackageShare('lab_manipulator'),
+        FindPackageShare('claus'), #CHECK- (new pkg)
         'urdf',
         'r100_wrapper.xacro',
     ])
@@ -68,7 +68,7 @@ def generate_launch_description():
             'platform_config:=generic',
         ]),
         value_type=str,
-    )
+    ) #-CHECK- (new pkg and xacro file)
 
     set_gz_resources = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
