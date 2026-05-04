@@ -94,20 +94,26 @@
     <include>
       <uri>model://aruco_marker_21</uri>
       <name>aruco_marker_21</name>
-      <pose>4 1 0.02 0 0 0</pose>
+      <pose>5.8 3.3 0.02 0 0 0</pose>
     </include>
 
     <include>
       <uri>model://aruco_marker_22</uri>
       <name>aruco_marker_22</name>
-      <pose>3 1 0.02 0 0 0</pose>
+      <pose>-3.5 3 0.02 0 0 0</pose>
     </include>
 
 
     <include>
       <uri>model://aruco_marker_20</uri>
       <name>aruco_marker_20</name>
-      <pose>3 0 0.02 0 0 0</pose>
+      <pose>3.5 0 0.02 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_23</uri>
+      <name>aruco_marker_23</name>
+      <pose>1.2 -3 0.02 0 0 0</pose>
     </include>
 
 
