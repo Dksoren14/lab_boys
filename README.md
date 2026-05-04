@@ -84,6 +84,7 @@ pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med
 sudo apt install ros-jazzy-pcl-ros
 
 To get simulation cam to intiate and work use command:
+```
 ros2 run aruco_sensor sim_aruco_node
-
+```
 
