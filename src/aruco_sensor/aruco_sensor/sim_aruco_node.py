@@ -228,9 +228,6 @@ def get_config():
 
         "aruco_dict_type": cv2.aruco.DICT_5X5_100,
         "marker_size_IRL": 0.162,
-
-        # Simulated camera pose relative to robot base.
-        # If pose is stable but offset later, tune these.
         "camera_position_base": [0.465, 0.0, 0.8765],
         "camera_pitch_down_deg": 60.0
     }
