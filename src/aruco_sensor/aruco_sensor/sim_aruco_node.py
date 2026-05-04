@@ -185,15 +185,6 @@ class ArucoSensorNode(Node):
                     -1
                 )
 
-                cv2.putText(
-                    frame,
-                    f"ID {marker_id}",
-                    (center_x + 5, center_y - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (0, 0, 255),
-                    2
-                )
 
         cv2.imshow("Sim ArUco Marker", frame)
         cv2.waitKey(1)
