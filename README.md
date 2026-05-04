@@ -55,12 +55,18 @@ source install/setup.bash
 ```
 ros2 launch claus_gazebo claus_sim.launch.py rviz:=true gui:=true lab_base:=true
 ```
+updated: 
+ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
+```
 4. Manually moving the robot
 
 In another terminal write, then tap on the original terminal to make the robot move using WASD
 ```
 ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
 ```
+updated:
+ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
+
 5. Save the map
 
 In a new terminal. {mapname} is just a placeholder for the name of the file. This should just be changed when saving the map to "laboratory" fx.

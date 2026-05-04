@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(lab_base)
+project(control) #changed from "lab_base"
 
 # Use C++20 standard
 set(CMAKE_CXX_STANDARD 20)

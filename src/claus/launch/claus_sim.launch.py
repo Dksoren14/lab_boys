@@ -24,23 +24,21 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    claus_gazebo_pkg = get_package_share_directory('claus_gazebo')
-    lab_base_pkg = FindPackageShare('lab_base')
+    claus_pkg = get_package_share_directory('claus') #CHECK- (new pkg)
+    gazebo_pkg = get_package_share_directory('gazebo') #CHECK- (new pkg)
+    control_pkg = FindPackageShare('control')
     pkg_prefix = get_package_prefix('clearpath_platform_description')
     lab_mani_prefix = get_package_prefix('lab_manipulator')
     gui = LaunchConfiguration('gui')
     rviz = LaunchConfiguration('rviz')
-    lab_base = LaunchConfiguration('lab_base')
+    control_enabled = LaunchConfiguration('control') #changed from lab_base to control
 
-    world = os.path.join(claus_gazebo_pkg, 'worlds', 'labyrinth.world')
-    rviz_config = os.path.join(claus_gazebo_pkg, 'rviz_configs', 'default.rviz')
+    world = os.path.join(gazebo_pkg, 'worlds', 'labyrinth.world') #changed reference to gazebo pkg
+    rviz_config = os.path.join(gazebo_pkg, 'rviz_configs', 'default.rviz') #changed reference to gazebo pkg
 
-    source_models = os.path.join(claus_gazebo_pkg, 'models')
-    claus_description_prefix = get_package_prefix('claus_description')
+    source_models = os.path.join(gazebo_pkg, 'models') #changed reference to gazebo pkg
     resource_paths = [
         source_models,
-        ':',
-        os.path.join(claus_description_prefix, 'share'),
         ':',
         os.path.join(pkg_prefix, 'share'),
         ':',
@@ -49,13 +47,13 @@ def generate_launch_description():
         EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
     ]
 
-    params_path = PathJoinSubstitution([lab_base_pkg, 'config', 'setup_sim.yaml'])
-    params_nav2 = PathJoinSubstitution([lab_base_pkg, 'config', 'nav2_params.yaml'])
+    params_path = PathJoinSubstitution([control_pkg, 'config', 'setup_sim.yaml']) #CHECK-
+    params_nav2 = PathJoinSubstitution([control_pkg, 'config', 'nav2_params.yaml'])
     slam_params = PathJoinSubstitution([
-        FindPackageShare('claus_nav'),
+        FindPackageShare('control'),
         'config',
         'mapper_params_online_async.yaml',
-    ])
+    ]) #-CHECK
 
     xacro_file = PathJoinSubstitution([
         FindPackageShare('lab_manipulator'),
@@ -151,22 +149,22 @@ def generate_launch_description():
         output='screen',
     )
 
-    lab_base_node = Node(
-        package='lab_base',
+    control_node = Node( #check - changed from lab_base_node to control_node, and package from lab_base to control
+        package='control',
         executable='lab_chassis',
         name='chassis',
-        namespace='lab_base/chassis',
+        namespace='control/chassis',
         parameters=[params_path],
         remappings=[
             (
-                '/lab_base/chassis/lab_boys/out/base_state',
+                '/control/chassis/lab_boys/out/base_state',
                 '/lab_boys/out/base_state',
             ),
         ],
         output='screen',
     )
 
-    slam = IncludeLaunchDescription(
+    slam = IncludeLaunchDescription(  #CHECK-
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
                 FindPackageShare('slam_toolbox'),
@@ -179,7 +177,7 @@ def generate_launch_description():
             'autostart': 'true',
             'slam_params_file': slam_params,
         }.items(),
-    )
+    ) #-CHECK
 
     planner_server = Node(
         package='nav2_planner',
@@ -275,7 +273,7 @@ def generate_launch_description():
             description='Start RViz with the R100 simulation display config.',
         ),
         DeclareLaunchArgument(
-            'lab_base',
+            'control',
             default_value='true',
             description='Start the lab_chassis node that publishes /cmd_vel.',
         ),
@@ -291,7 +289,7 @@ def generate_launch_description():
         TimerAction(period=15.0, actions=[planner_server, planner_lifecycle_manager]),
         TimerAction(
             period=28.0,
-            actions=[lab_base_node],
-            condition=IfCondition(lab_base),
+            actions=[control_node],
+            condition=IfCondition(control_enabled),
         ),
     ])

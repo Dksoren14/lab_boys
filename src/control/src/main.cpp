@@ -37,7 +37,7 @@ public:
     using GoalHandleBaseCommand = rclcpp_action::ServerGoalHandle<BaseCommandAction>;
     using ComputePathToPose = nav2_msgs::action::ComputePathToPose;
     LabBaseNode() 
-    : Node("lab_base_node"),
+    : Node("lab_base_node"), //hep hep!!
     state_manager(),
     controller(state_manager)
     {
