@@ -20,3 +20,4 @@ slam_toolbox:
     check_min_dist_and_heading_precisely: true
     scan_buffer_size: 20
     scan_buffer_maximum_scan_distance: 20.0
+    enable_interactive_mode: false
