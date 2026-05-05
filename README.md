@@ -87,7 +87,7 @@ To get simulation cam to intiate and work use command:
 ```
 ros2 run aruco_sensor sim_aruco_node
 ```
-
+Stop command:
 ```
 ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'stop', target_pose: []}"
 ```
