@@ -423,9 +423,11 @@ private:
             else if (goal->command == "stop")
             {
                 RCLCPP_INFO(this->get_logger(), "Executing 'stop' command");
-                control_mode = 5;
-                state_manager.setControlMode(control_mode);
-                result ->success = true;
+
+                stop_robot();
+
+                result->success = true;
+                result->message = "Robot stopped";
                 goal_handle->succeed(result);
             }
             else if (goal->command == "manual")
@@ -714,19 +716,7 @@ private:
             }
         case 5: //Stop
             {
-            RCLCPP_INFO(this->get_logger(), "Target position reached");
-                    geometry_msgs::msg::Twist cmd_vel;
-                    cmd_vel.linear.x = 0.0;
-                    cmd_vel.angular.z = 0.0;
-                    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-                    state_manager.setTargetPosition(target_profile);
-                    reached_target_angle = false;
-                    previous_position_error.X.error = 0.0;
-                    previous_angle_error.Z.error = 0.0;
-                    cmd_vel_pub->publish(cmd_vel);
-                    current_waypoint_idx_ = 0;
-                    stop_control_loop();
-              
+            stop_robot();
             break;
             }
         default:
@@ -735,6 +725,59 @@ private:
         };
 
     }
+
+        void publish_zero_velocity()
+    {
+        geometry_msgs::msg::Twist cmd_vel;
+
+        cmd_vel.linear.x = 0.0;
+        cmd_vel.linear.y = 0.0;
+        cmd_vel.linear.z = 0.0;
+
+        cmd_vel.angular.x = 0.0;
+        cmd_vel.angular.y = 0.0;
+        cmd_vel.angular.z = 0.0;
+
+        cmd_vel_pub->publish(cmd_vel);
+    }
+
+
+    void stop_robot()
+    {
+        RCLCPP_WARN(this->get_logger(), "Stopping robot");
+
+        // Immediately send zero velocity
+        publish_zero_velocity();
+
+        // Reset target/controller state
+        Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+        state_manager.setTargetPosition(target_profile);
+        state_manager.setGoalPosition(target_profile);
+
+        reached_target_angle = false;
+        current_waypoint_idx_ = 0;
+
+        previous_position_error.X.error = 0.0;
+        previous_angle_error.Z.error = 0.0;
+        previous_velocity_error.dX.error = 0.0;
+
+        // Stop the active control loop and return to idle
+        stop_control_loop();
+
+        // Send zero velocity again after stopping the timer
+        publish_zero_velocity();
+
+        RCLCPP_WARN(this->get_logger(), "Robot stopped");
+    }
+
+
+
+
+
+
+
+
+
 
     void stop_control_loop()
     {
