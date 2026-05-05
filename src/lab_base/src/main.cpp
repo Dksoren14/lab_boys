@@ -652,7 +652,7 @@ private:
                     reached_target_angle = false;
                     previous_position_error.X.error = 0.0;
                     previous_angle_error.Z.error = 0.0;
-                    //cmd_vel_pub->publish(cmd_vel);
+                    cmd_vel_pub->publish(cmd_vel);
                     current_waypoint_idx_ = 0;
                     stop_control_loop();
               
