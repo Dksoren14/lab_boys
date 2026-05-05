@@ -32,6 +32,11 @@ public:
     double unwrapAngle(double angle, double max, double min) const;
 
     double velocity_vector(const Stamped3DVector& current_position, Stamped3DVector& previous_position, double d_time);
+    Stamped3DVector aruco_translation(
+        const Stamped3DVector& aruco_vector, 
+        const Eigen::Vector3d& aruco_orientation,
+        const Stamped3DVector& current_position, 
+        const Eigen::Vector3d& current_orientation);
 
 private:
 

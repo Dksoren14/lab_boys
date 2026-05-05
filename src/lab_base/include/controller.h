@@ -60,6 +60,13 @@ public:
         PositionError& previous_angle_error,
         Stamped3DVector& global_velocity
         );
+    geometry_msgs::msg::Twist od_PD_precision_controller(const Stamped3DVector& current_position, 
+        Eigen::Vector3d& current_angle,
+        Stamped3DVector&  target_position,
+        double sample_time,
+        PositionError& previous_position_error,
+        PositionError& previous_angle_error
+        );
 
 private:
     StateManager& state_manager;

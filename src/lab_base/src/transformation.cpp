@@ -67,6 +67,8 @@ double Transformation::calculate_angle_to_target(
 
 
 
+
+
 Eigen::Vector3d Transformation::quaternion_to_euler(const Eigen::Quaterniond& q) const {
     // Get Euler angles in ZYX convention (yaw, pitch, roll)
     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(2, 1, 0);
@@ -120,4 +122,31 @@ double Transformation::velocity_vector(const Stamped3DVector& current_position, 
     previous_position.setY(current_position.y());
 
     return std::sqrt(velocity_x * velocity_x + velocity_y * velocity_y);
+}
+
+Stamped3DVector Transformation::aruco_translation(
+    const Stamped3DVector& aruco_vector,
+    const Eigen::Vector3d& aruco_orientation,
+    const Stamped3DVector& current_position,
+    const Eigen::Vector3d& current_orientation)
+{
+    // Transform 1: ArUco marker pose in global frame
+    // Rotation from aruco's yaw, translation from aruco's global position
+    Eigen::Matrix4d T_G_A = Eigen::Matrix4d::Identity();
+    double yaw = aruco_orientation.z();
+    T_G_A(0,0) =  cos(yaw);  T_G_A(0,1) = -sin(yaw);
+    T_G_A(1,0) =  sin(yaw);  T_G_A(1,1) =  cos(yaw);
+    T_G_A(0,3) = aruco_vector.x();
+    T_G_A(1,3) = aruco_vector.y();
+    T_G_A(2,3) = aruco_vector.z();
+
+    // Transform 2: Offset point in ArUco's LOCAL frame
+    // -0.875 along aruco's local X = "behind" the marker
+    Eigen::Matrix4d T_A_F = Eigen::Matrix4d::Identity();
+    T_A_F(0,3) = -0.875;
+
+    // Compose: global pose of the offset point
+    Eigen::Matrix4d T_G_F = T_G_A * T_A_F;
+
+    return Stamped3DVector(aruco_vector.getTime(), T_G_F(0,3), T_G_F(1,3), T_G_F(2,3));
 }

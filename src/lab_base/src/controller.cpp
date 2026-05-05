@@ -163,7 +163,7 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller_2(const Stamped3DVector& 
         current_angle);
     
     double velocity_error = 1.1 - global_velocity.x(); // Assuming we want to maintain a velocity of 0.3 m/s towards the target
-    std::cout << "Current velocity: " << global_velocity.x() << ", Velocity error: " << velocity_error << std::endl;
+
     while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
     while (local_angle_error < -M_PI) local_angle_error += 2.0 * M_PI;
 
@@ -175,18 +175,61 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller_2(const Stamped3DVector& 
         local_angle_error_d = (local_angle_error - previous_angle_error.Z.error) / sample_time;
         velocity_error_d = (velocity_error - previous_velocity_error.dX.error) / sample_time;
     }
-    std::cout << "CALCULATED DERIVATIVE:" << velocity_error_d << std::endl;
     // PD output
     geometry_msgs::msg::Twist output_velocity;
     output_velocity.angular.z = pd_angular_gains.kp * local_angle_error + pd_angular_gains.kd * local_angle_error_d;
     output_velocity.linear.x = pd_linear_gains.kp * velocity_error + pd_linear_gains.kd * velocity_error_d;
-    std::cout << "Calculated LINEAR velocity: " << output_velocity.linear.x << std::endl;
+ 
     // Save error for next tick
     previous_angle_error.Z.error = local_angle_error;
     previous_velocity_error.dX.error = velocity_error;
-    std::cout << "Previous velocity error updated to AFTER: " << previous_velocity_error.dX.error << std::endl;
+
     output_velocity.linear.x = std::clamp(output_velocity.linear.x, -1.1, 1.1); //Speed limit after Ridgeback Max Speed
 
     //output_velocity.linear.x = 0.0;
+    return output_velocity;
+}
+
+
+geometry_msgs::msg::Twist Controller::od_PD_precision_controller(const Stamped3DVector& current_position, 
+        Eigen::Vector3d& current_angle,
+        Stamped3DVector&  target_position,
+        double sample_time,
+        PositionError& previous_position_error,
+        PositionError& previous_angle_error
+        ) {
+            geometry_msgs::msg::Twist output_velocity;
+
+             double local_angle_error = transformation.calculate_angle_to_target(
+                                                        target_position,
+                                                        current_position,
+                                                        current_angle);
+            double position_error_x = target_position.x() - current_position.x();
+            double position_error_y = target_position.y() - current_position.y();
+            Eigen::Vector3d global_error(position_error_x, position_error_y, 0.0);
+    
+             Eigen::Vector3d local_error = transformation.global_to_local_error(current_position, global_error, current_angle);
+
+
+
+             while (local_angle_error > M_PI) local_angle_error -= 2.0 * M_PI;
+             while (local_angle_error < -M_PI) local_angle_error += 2.0 * M_PI;
+
+             double local_angle_error_d = 0.0;
+             double position_error_x_d = 0.0;
+             if (sample_time > 0.0) {
+                 position_error_x_d = (local_error.x() - previous_position_error.X.error) / sample_time;
+                 //position_error_y_d = (local_error.y() - previous_position_error.Y.error) / sample_time;
+                 local_angle_error_d = (local_angle_error - previous_angle_error.Z.error) / sample_time;
+             }
+
+            output_velocity.linear.x = pd_linear_precision_gains.kp * local_error.x() + pd_linear_precision_gains.kd * position_error_x_d;
+            output_velocity.linear.y = pd_linear_precision_gains.kp * local_error.y() + pd_linear_precision_gains.kd * position_error_x_d;
+            output_velocity.angular.z = pd_angular_gains.kp * local_angle_error + pd_angular_gains.kd * local_angle_error_d;
+
+            previous_position_error.X.error = local_error.x();
+            previous_angle_error.Z.error = local_angle_error;
+
+            output_velocity.linear.x = std::clamp(output_velocity.linear.x, -1.1, 1.1); //Speed limit after Ridgeback Max Speed
     return output_velocity;
 }

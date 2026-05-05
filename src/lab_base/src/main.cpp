@@ -498,6 +498,11 @@ private:
         Stamped3DVector target_position = state_manager.getTargetPosition();
         Stamped3DVector goal_position = state_manager.getGoalPosition();
         Stamped3DVector global_velocity = state_manager.getGlobalBaseVelocity();
+        Stamped3DVector aruco_position = state_manager.getArucoPose();
+        Eigen::Vector3d aruco_orientation = transformation.quaternion_to_euler(state_manager.getArucoOrientation());
+        Stamped3DVector transformed_aruco = transformation.aruco_translation(aruco_position, aruco_orientation, current_position, euler_angles);
+        std::cout << "Aruco Position: x=" << aruco_position.x() << ", y=" << aruco_position.y() << ", z=" << aruco_position.z() << std::endl;
+        std::cout << "Transformed Aruco Position: x=" << transformed_aruco.x() << ", y=" << transformed_aruco.y() << ", z=" << transformed_aruco.z() << std::endl;
        
         switch (state_manager.getControlMode())
         {
@@ -631,16 +636,7 @@ private:
                 cmd_vel_pub->publish(cmd_vel);
             if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
-                    //cmd_vel.linear.x = 0.0;
-                    //cmd_vel.angular.z = 0.0;
-                    //Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-                    //state_manager.setTargetPosition(target_profile);
-                    //reached_target_angle = false;
-                    //previous_position_error.X.error = 0.0;
-                    //previous_angle_error.Z.error = 0.0;
-                    //cmd_vel_pub->publish(cmd_vel);
-                    //current_waypoint_idx_ = 0;
-                    //stop_control_loop();
+                  
                     if(this->now() - aruco_last_seen_timer < rclcpp::Duration(1s)){
                         std::cout << "Aruco marker seen recently, switching to aruco mode" << std::endl;
                         state_manager.setControlMode(3); // Switch to aruco mode
@@ -648,7 +644,7 @@ private:
                     }
                     else{
                         std::cout << "Aruco marker not seen for a while, searching for marker" << std::endl;
-                        cmd_vel.angular.z = 1.0; // Rotate in place to search for marker
+                        cmd_vel.angular.z = 0.3; // Rotate in place to search for marker
                         cmd_vel_pub->publish(cmd_vel);
                     
                     }
@@ -657,11 +653,31 @@ private:
         }
         case 3: // Aruco Mode
             {
+                
                 std::cout << "IM RUNNING!!!!" << std::endl;
-                geometry_msgs::msg::Twist cmd_vel;
-                cmd_vel.linear.x = 0.0;
-                cmd_vel.angular.z = 0.0;
-                cmd_vel_pub->publish(cmd_vel);
+
+                //geometry_msgs::msg::Twist cmd_vel= controller.od_PD_precision_controller(current_position, 
+                //        euler_angles,
+                //        aruco_position,
+                //        d_time,
+                //        previous_position_error,
+                //        previous_angle_error
+                //);
+                
+                //cmd_vel_pub->publish(cmd_vel);
+                //if(controller.euclidean_distance(current_position, TBD) < goal_distance.threshold){
+                //    RCLCPP_INFO(this->get_logger(), "Target position reached");
+                //    cmd_vel.linear.x = 0.0;
+                //    cmd_vel.angular.z = 0.0;
+                //    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+                //    state_manager.setTargetPosition(target_profile);
+                //    reached_target_angle = false;
+                //    previous_position_error.X.error = 0.0;
+                //    previous_angle_error.Z.error = 0.0;
+                //    cmd_vel_pub->publish(cmd_vel);
+                //    current_waypoint_idx_ = 0;
+                //    stop_control_loop();
+                //}
                 break;
             }
             
@@ -696,7 +712,7 @@ private:
                     reached_target_angle = false;
                     previous_position_error.X.error = 0.0;
                     previous_angle_error.Z.error = 0.0;
-                    //cmd_vel_pub->publish(cmd_vel);
+                    cmd_vel_pub->publish(cmd_vel);
                     current_waypoint_idx_ = 0;
                     stop_control_loop();
               
