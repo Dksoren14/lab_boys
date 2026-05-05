@@ -752,7 +752,6 @@ private:
         // Reset target/controller state
         Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
         state_manager.setTargetPosition(target_profile);
-        state_manager.setGoalPosition(target_profile);
 
         reached_target_angle = false;
         current_waypoint_idx_ = 0;
@@ -769,14 +768,6 @@ private:
 
         RCLCPP_WARN(this->get_logger(), "Robot stopped");
     }
-
-
-
-
-
-
-
-
 
 
     void stop_control_loop()
