@@ -53,18 +53,12 @@ source install/setup.bash
 
 3. Use the launch script, to launch gazebo and rviz2:
 ```
-ros2 launch claus_gazebo claus_sim.launch.py rviz:=true gui:=true lab_base:=true
-```
-UPDATED: 
 ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
 ```
 4. Manually moving the robot
 
 In another terminal write, then tap on the original terminal to make the robot move using WASD
 ```
-ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
-```
-UPDATED:
 ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
 
 5. Save the map
