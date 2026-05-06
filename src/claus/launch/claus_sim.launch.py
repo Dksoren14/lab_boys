@@ -29,7 +29,7 @@ def generate_launch_description():
     gazebo_pkg = get_package_share_directory('gazebo') #CHECK- (new pkg)
     control_pkg = FindPackageShare('control')
     pkg_prefix = get_package_prefix('clearpath_platform_description')
-    lab_mani_prefix = get_package_prefix('lab_manipulator')
+    lab_mani_prefix = get_package_prefix('manipulator')
     gui = LaunchConfiguration('gui')
     rviz = LaunchConfiguration('rviz')
     control_enabled = LaunchConfiguration('control') #changed from lab_base to control
