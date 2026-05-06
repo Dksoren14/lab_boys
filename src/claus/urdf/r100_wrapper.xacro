@@ -13,6 +13,7 @@
   </material>
 
 
+
   <link name="mounting_structure_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -112,7 +113,6 @@
   </joint>
 
 
-
   <xacro:r100/>
     <xacro:simple_lidar
       prefix="front"
@@ -125,6 +125,7 @@
         parent_link="chassis_link"
         location="-1"
         topic="/sensors/rear_lidar/scan"/>
+
 
   <gazebo>
     <plugin filename="gz-sim-mecanum-drive-system" name="gz::sim::systems::MecanumDrive">

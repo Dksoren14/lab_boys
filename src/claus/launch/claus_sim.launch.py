@@ -25,6 +25,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     claus_pkg = get_package_share_directory('claus') #CHECK- (new pkg)
+    claus_prefix = get_package_prefix('claus')
     gazebo_pkg = get_package_share_directory('gazebo') #CHECK- (new pkg)
     control_pkg = FindPackageShare('control')
     pkg_prefix = get_package_prefix('clearpath_platform_description')
@@ -43,6 +44,8 @@ def generate_launch_description():
         os.path.join(pkg_prefix, 'share'),
         ':',
         os.path.join(lab_mani_prefix, 'share'),
+        ':',
+        os.path.join(claus_prefix, 'share'),
         ':',
         EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
     ]#-CHECK
