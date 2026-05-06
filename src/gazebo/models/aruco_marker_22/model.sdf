@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<sdf version="1.6">
+  <model name="aruco_marker_22">
+    <static>true</static>
+
+    <link name="marker_22_link">
+
+      <visual name="marker_22_visual">
+        <pose>0 0 0 0 0 0</pose>
+
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.162 0.162</size>
+          </plane>
+        </geometry>
+
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0 0 0 1</specular>
+
+          <pbr>
+            <metal>
+              <albedo_map>model://aruco_marker_22/textures/aruco_marker_22.png</albedo_map>
+              <roughness>1.0</roughness>
+              <metalness>0.0</metalness>
+            </metal>
+          </pbr>
+        </material>
+
+        <cast_shadows>false</cast_shadows>
+      </visual>
+    </link>
+  </model>
+</sdf>

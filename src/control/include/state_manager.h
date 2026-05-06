@@ -84,6 +84,10 @@ public:
     Stamped3DVector getGoalPosition();
     void setPath(std::vector<geometry_msgs::msg::PoseStamped>& path);
     std::vector<geometry_msgs::msg::PoseStamped> getPath();
+    void setArucoPose(const Stamped3DVector& aruco_pose);
+    Stamped3DVector getArucoPose();
+    void setArucoOrientation(const Eigen::Quaterniond& aruco_orientation);
+    Eigen::Quaterniond getArucoOrientation();
     
 
 
@@ -107,6 +111,10 @@ private:
     Stamped3DVector goal_position;
     std::mutex path_mutex;
     std::vector<geometry_msgs::msg::PoseStamped> path;
+    std::mutex aruco_pose_mutex;
+    Stamped3DVector aruco_pose;
+    std::mutex aruco_orientation_mutex;
+    Eigen::Quaterniond aruco_orientation;
 
     int control_mode = 0; 
 };

@@ -201,10 +201,44 @@ def generate_launch_description():
         parameters=[{
             'use_sim_time': True,
             'autostart': True,
-            'node_names': ['planner_server'],
+            'node_names': [
+                            'keepout_map_server',
+                            'costmap_filter_info_server',
+                            'planner_server',
+                        ],
         }],
         output='screen',
     )
+    
+    keepout_map_server = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='keepout_map_server',
+        parameters=[
+            params_nav2,
+            {'use_sim_time': True},
+            {'yaml_filename': os.path.join(get_package_share_directory('control'), 'config', 'keepout_map.yaml')},
+            {'topic_name': '/keepout_filter_mask'},
+            {'frame_id': 'map'},
+        ],
+        output='screen',
+    )
+    costmap_filter_info_server = Node(
+        package='nav2_map_server',
+        executable='costmap_filter_info_server',
+        name='costmap_filter_info_server',
+        parameters=[
+            params_nav2,
+            {'use_sim_time': True},
+            {'type': 0},
+            {'filter_info_topic': 'costmap_filter_info'},
+            {'mask_topic': '/keepout_filter_mask'},
+            {'base': 0.0},
+            {'multiplier': 1.0},
+        ],
+        output='screen',
+    )
+    
 
     throttle_joint_states = Node(
         package='topic_tools',
@@ -230,8 +264,8 @@ def generate_launch_description():
             '/model/r100/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             '/world/default/model/r100/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
             '/front_realsense/image@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/front_realsense/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/front_realsense/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked'
+            #'/front_realsense/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
+            #'/front_realsense/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked'
         ],
         remappings=[
             ('/world/default/clock', '/clock'),
@@ -267,12 +301,12 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'gui',
-            default_value='false',
+            default_value='true',
             description='Start the Gazebo GUI in addition to the simulation server.',
         ),
         DeclareLaunchArgument(
             'rviz',
-            default_value='false',
+            default_value='true',
             description='Start RViz with the R100 simulation display config.',
         ),
         DeclareLaunchArgument(
@@ -289,7 +323,11 @@ def generate_launch_description():
         TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states, lidar_merger]),
         TimerAction(period=8.0, actions=[rviz_node]),
         TimerAction(period=10.0, actions=[slam]),
-        TimerAction(period=15.0, actions=[planner_server, planner_lifecycle_manager]),
+        TimerAction(period=15.0, actions=[keepout_map_server, costmap_filter_info_server]),
+        TimerAction(period=20.0, actions=[
+            planner_server,
+            planner_lifecycle_manager,
+        ]),
         TimerAction(
             period=28.0,
             actions=[control_node],

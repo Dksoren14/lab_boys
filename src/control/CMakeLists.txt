@@ -31,7 +31,6 @@ add_executable(lab_chassis
     src/state_manager.cpp
     src/controller.cpp
     src/transformation.cpp
-    src/path_planner.cpp
 )
 target_include_directories(lab_chassis PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include

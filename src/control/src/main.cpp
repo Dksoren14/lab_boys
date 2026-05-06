@@ -25,7 +25,6 @@
 #include "state_manager.h"
 #include "controller.h"
 #include "transformation.h"
-#include "path_planner.h"
 
 using namespace std;
 
@@ -37,7 +36,7 @@ public:
     using GoalHandleBaseCommand = rclcpp_action::ServerGoalHandle<BaseCommandAction>;
     using ComputePathToPose = nav2_msgs::action::ComputePathToPose;
     LabBaseNode() 
-    : Node("lab_base_node"), //hep hep!!
+    : Node("lab_base_node"),
     state_manager(),
     controller(state_manager)
     {
@@ -75,41 +74,53 @@ public:
         std::cout << "Goal distance: threshold=" << goal_distance.threshold << std::endl;
         std::cout << R"(
 
-                               /T /I                       
-                              / |/ | .-~/                  
-                          T\ Y  I  |/  /  _          
-         /T               | \I  |  I  Y.-~/                 
-        I l   /I       T\ |  |  l  |  T  /                  
-     T\ |  \ Y l  /T   | \I  l   \ `  l Y                       
- __  | \l   \l  \I l __l  l   \   `  _. |                   
- \ ~-l  `\   `\  \  \\ ~\  \   `. .-~   |                    
-  \   ~-. "-.  `  \  ^._ ^. "-.  /  \   |                   
-.--~-._  ~-  `  _  ~-_.-"-." ._ /._ ." ./                   
- >--.  ~-.   ._  ~>-"    "\   7   7   ]                    
-^.___~"--._    ~-{  .-~ .  `\ Y . /    |                    
- <__ ~"-.  ~       /_/   \   \I  Y   : |                    
-   ^-.__           ~(_/   \   >._:   | l______              
-       ^--.,___.-~"  /_/   !  `-.~"--l_ /     ~"-.          
-              (_/ .  ~(   /'     "~"--,Y   -=b-. _)             
-               (_/ .  \  :           / l      c"~o  \
-                \ /    `.    .     .^   \_.-~"~--.  )           
-                 (_/ .   `  /     /       !       )/        
-                  / / _.   '.   .':      /        '         
-                  ~(_/ .   /    _  `  .-<_                  
-                    /_/ . ' .-~" `.  / \  \          ,z=.       
-                    ~( /   '  :   | K   "-.~-.______//          
-                      "-,.    l   I/ \_    __{--->._(==.        
-                       //(     \  <    ~"~"     //          
-                      /' /\     \  \     ,v=.  ((           
-                    .^. / /\     "  }__ //===-  `           
-                   / / ' '  "-.,__ {---(==-                 
-                 .^ '       :  T  ~"   ll
-                / .  .  . : | :!        \\
-               (_/  /   | | j-"          ~^             
-                 ~-<_(_.^-~"                            
-
+                ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣈⣿⣿⣿⣿⣿⣇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣤⣤⡀⠀⣠⣼⣿⣿⣿⠿⠿⢯⡿⠿⢤⡀⠀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⡝⠀⠀⠀⠈⠸⠗⠽⣼⣿⣿⣿⣿⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣴⣷⣧⣤⡀⢰⣷⣻⣿⣿⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⢹⣿⣿⣿⣿⣿⡝⣴⣿⣿⣿⣯⣍⠀⠈⡌⡟⠛⠛⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣽⣿⣿⣿⣿⣿⣿⣿⠣⣺⣗⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣟⣝⢻⡿⠟⣻⡟⠋⠉⢋⡟⣷⠎⣄⢁⠊⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⡇⠀⡀⣿⡧⠀⡴⡾⠰⠁⢙⣦⣭⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣾⣄⣿⣿⣾⣆⣤⣖⣠⣾⡗⣾⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⢰⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⢀⡠⠤⣠⣶⣝⣿⣿⣿⣿⡛⠑⢩⣿⡿⠓⠛⠉⣁⢎⣮⣰⣿⣏⢶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⣠⣾⣷⣿⣶⣿⣿⣿⣿⣿⣿⣿⣿⡓⣿⣿⣿⠀⠀⣀⣷⢿⣿⣿⣿⠩⢙⣯⣗⣎⣭⣲⣄⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⣠⣾⣿⣿⣿⣯⣽⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡷⡶⢻⢿⣿⣿⣿⣿⣩⠀⠄⠰⠍⢢⠀⠀⠀⠀
+        ⠀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣇⣠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣭⠁⠈⠙⢻⣋⣹⠐⠀⣿⣿⣿⣿⣷⣖⠁⡀⠀⠓⢣⠀⠀⠀
+        ⠀⣠⠾⠙⠻⣿⣿⣿⣿⣿⣿⣿⡿⢻⣿⣿⣿⣿⣿⣿⡿⠿⠁⠀⠀⠀⠹⢁⠑⠀⡘⡿⣿⣿⣿⣯⢂⣄⡀⠘⣳⡆⠀⠀
+        ⣼⣷⣏⣠⣌⣨⣿⣿⣿⣿⡟⠋⢠⣿⣿⣿⣿⣿⣿⣿⣷⣮⠁⠀⠀⠀⠀⢣⣈⠁⢃⡹⣿⣿⣿⣿⣖⠎⠁⠀⠁⡸⡀⠀
+        ⣿⣿⡿⣿⣯⡿⢵⣿⣿⣿⡶⢆⣾⣿⣿⣿⣿⣿⣿⠛⠛⠋⠀⠀⠀⠀⠀⠀⣗⠑⠈⠁⡹⣿⠻⣿⣿⣷⣵⣦⣤⠊⠁⠀
+        ⠹⣿⣯⣽⣿⣾⣷⡟⠙⠻⢯⠋⣿⣿⣿⣿⣿⣿⣾⣤⡀⠀⠀⠀⠀⠀⠀⠀⢸⠙⠨⢔⠅⣿⡀⠈⣻⣿⣿⡇⠑⠫⠑⡄
+        ⠀⠈⠻⢿⣿⣿⡟⠻⢦⣤⠃⢸⣿⣿⣿⣿⣿⣿⣿⡋⠊⠀⠀⠀⠀⠀⠀⠀⠈⣞⣣⢴⢺⣿⡇⢠⣿⣿⣿⠂⠂⠀⠃⢡
+        ⠀⠀⠀⢸⣿⡿⢿⣤⣤⡜⠀⠘⣿⣿⣿⣿⣿⣿⡿⡋⡷⡂⢀⠀⠀⠀⡀⠀⠀⣗⣿⣓⣾⣿⠇⢸⣿⣿⣿⣧⠠⠀⢲⣸
+        ⠀⠀⠀⠈⠻⢿⣦⣖⡺⠁⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣵⠐⡈⠀⠀⠀⠀⠀⠀⣷⣝⣄⣿⣿⠀⢸⣿⣿⣷⠊⠀⠀⣢⡇
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⡟⡻⢹⣿⠇⠀⠘⣿⣿⣷⣷⣥⣄⡿⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣽⣿⣿⣿⣿⣫⡟⠊⠁⠀⠀⠀⠀⠀⠀⢀⢗⣽⣾⣯⡄⠀⢀⣾⠿⡟⢿⢟⣋⠁⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣷⣧⣤⣤⣄⣠⡤⣴⣿⣿⣿⣿⣿⣷⣿⣟⢁⢸⠁⠤⣣⡟⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⣿⣿⣿⣿⣿⣤⢦⠜⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡅⠈⠀⠨⢪⢁⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵⣿⣿⣿⣿⣿⣿⣿⣿⠿⢿⣷⡟⡠⡷⠁⢂⠧⢹⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⡻⢿⣿⣿⣿⣿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣿⣿⣇⣽⡇⣠⣾⢹⡎⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⠥⠓⠊⠝⣻⣿⠀⠀⣿⣿⣿⣿⡿⡿⡿⠟⢑⣾⠀⠈⠛⠓⠚⠛⠚⠁⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⡊⢀⠀⠀⠐⣿⠀⠀⣿⣿⣿⡿⠉⢠⢁⡀⠼⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⡿⢒⡐⣄⣴⡿⠀⠀⢹⣿⣿⣿⢀⠀⠀⢀⣭⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡿⢾⠿⢿⡾⠁⠀⠀⠈⢿⣿⣿⣿⠷⠿⡾⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣽⣿⣿⣿⣇⣠⣴⡎⠀⠀⠀⠀⢸⣿⣿⣿⣾⡅⣌⣿⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⢏⠉⠉⢹⢷⠀⠀⠀⠀⢸⣿⣿⣿⡏⠁⠀⠪⣱⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡿⠿⠧⠀⠀⣺⠀⠀⠀⠀⢸⣿⣿⣿⢄⠀⠄⠌⡉⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡃⠀⡀⠀⢠⣿⠀⠀⠀⠀⢸⣿⣿⣿⡄⠗⠀⢀⣸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣷⢞⡔⠀⠺⡇⠀⠀⠀⠀⢸⣿⣿⣿⣧⡂⢀⠴⣶⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⠇⠀⢠⣃⠇⠀⠀⠀⠀⠀⣿⣿⣿⡟⣏⢀⣹⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠤⣶⣿⣿⣿⣿⣗⠒⢿⣷⡄⠀⠀⠀⣠⣾⣿⣿⣷⠚⢳⣾⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⣠⣤⣶⣾⣥⡾⣿⠟⣫⣾⣿⣿⣄⣤⣿⣿⠀⠀⡼⣾⣿⣩⣿⣿⣷⣹⣿⡿⢮⣇⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣷⣾⣯⣸⣿⣿⡿⢉⣀⢹⣿⣿⣧⣾⣿⣯⣽⣿⣿⣿⠇⠉⣿⣧⣦⣱⡵⣆⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠸⢿⣿⣿⣿⣿⣿⣿⡺⢼⣿⣿⣗⡊⣘⣹⡛⢋⣿⣿⣟⠪⢻⣿⣿⣿⠂⠧⣽⣿⣧⠁⠀⣟⡄⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠀⠉⠉⠛⠓⠒⠒⠚⠁⠈⠛⠻⠧⠤⠛⠛⠿⠯⠿⠬⠞⠛⠻⠭⠝⠓⠂⠀
 )" << std::endl;
         controller.setGains(pid_turning_gains, pid_linear_gains, pid_angular_gains, pid_linear_precision_gains);
+        aruco_last_seen_timer = rclcpp::Time(0, 0, this->get_clock()->get_clock_type());
         // --- Quality of Service settings for subscriptions ---
         rclcpp::QoS qos(10);
         qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
@@ -121,6 +132,14 @@ public:
             qos,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg){
                 global_callback(msg);
+            }
+        ); 
+
+        aruco_pose_sub = this->create_subscription<geometry_msgs::msg::Pose>(
+            "/aruco_marker_pose",
+            qos,
+            [this](const geometry_msgs::msg::Pose::SharedPtr msg){
+                aruco_callback(msg);
             }
         );
 
@@ -177,11 +196,13 @@ private:
     std::shared_ptr<BaseCommandAction::Result> current_result;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr local_position_sub;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr base_global_position_sub;
+    rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr aruco_pose_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub; 
     rclcpp::Publisher<interfaces::msg::BaseState>::SharedPtr base_state_pub;
     rclcpp::Time last_time;
     rclcpp::TimerBase::SharedPtr base_state_timer;
     rclcpp::TimerBase::SharedPtr path_timer;
+    rclcpp::Time aruco_last_seen_timer;
     bool reached_target_angle = false;
     int current_waypoint_idx_ = 0;
 
@@ -202,7 +223,7 @@ private:
     void replan()
     {   
         
-        std::cout << "Goal before planning: " << state_manager.getGoalPosition().x() << ", " << state_manager.getGoalPosition().y() << ", " << state_manager.getGoalPosition().z() << std::endl;
+       
        if (!path_client->wait_for_action_server(std::chrono::seconds(5)))
         {
             RCLCPP_WARN(this->get_logger(), "Planner not available");
@@ -305,6 +326,15 @@ private:
         
 
     }
+
+    void aruco_callback(const geometry_msgs::msg::Pose::SharedPtr msg)
+    {
+        aruco_last_seen_timer = this->now();
+        Stamped3DVector aruco_position = Stamped3DVector(this->now(), msg->position.x, msg->position.y, msg->position.z);
+        state_manager.setArucoPose(aruco_position);
+        Eigen::Quaterniond aruco_orientation(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+        state_manager.setArucoOrientation(aruco_orientation);
+    }
     
     // --- Publisher
     void publish_base_state()
@@ -392,8 +422,11 @@ private:
             else if (goal->command == "stop")
             {
                 RCLCPP_INFO(this->get_logger(), "Executing 'stop' command");
-                //execute_stop_command(result);
-                result ->success = true;
+
+                stop_robot();
+
+                result->success = true;
+                result->message = "Robot stopped";
                 goal_handle->succeed(result);
             }
             else if (goal->command == "manual")
@@ -477,6 +510,11 @@ private:
         Stamped3DVector target_position = state_manager.getTargetPosition();
         Stamped3DVector goal_position = state_manager.getGoalPosition();
         Stamped3DVector global_velocity = state_manager.getGlobalBaseVelocity();
+        Stamped3DVector aruco_position = state_manager.getArucoPose();
+        Eigen::Vector3d aruco_orientation = transformation.quaternion_to_euler(state_manager.getArucoOrientation());
+        Stamped3DVector transformed_aruco = transformation.aruco_translation(aruco_position, aruco_orientation, current_position, euler_angles);
+        std::cout << "Aruco Position: x=" << aruco_position.x() << ", y=" << aruco_position.y() << ", z=" << aruco_position.z() << std::endl;
+        std::cout << "Transformed Aruco Position: x=" << transformed_aruco.x() << ", y=" << transformed_aruco.y() << ", z=" << transformed_aruco.z() << std::endl;
        
         switch (state_manager.getControlMode())
         {
@@ -564,14 +602,7 @@ private:
                                                     way_point.pose.position.y, 
                                                     way_point.pose.position.z);
 
-                std::cout << "Waypoint " << current_waypoint_idx_ 
-                          << " frame: " << way_point.header.frame_id
-                          << " pos: " << way_point.pose.position.x 
-                          << ", " << way_point.pose.position.y << std::endl;
-                std::cout << "Current pos: " << current_position.x() 
-                          << ", " << current_position.y() << std::endl;                         
-                state_manager.setTargetPosition(target_position);
-                std::cout << "TARGET POSITION = (" << target_position.x() << ", " << target_position.y() << ")" << std::endl;
+               
                 //The linear controller
                 geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
                     current_position,
@@ -617,37 +648,52 @@ private:
                 cmd_vel_pub->publish(cmd_vel);
             if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
                     RCLCPP_INFO(this->get_logger(), "Target position reached");
-                    cmd_vel.linear.x = 0.0;
-                    cmd_vel.angular.z = 0.0;
-                    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-                    state_manager.setTargetPosition(target_profile);
-                    reached_target_angle = false;
-                    previous_position_error.X.error = 0.0;
-                    previous_angle_error.Z.error = 0.0;
-                    cmd_vel_pub->publish(cmd_vel);
-                    current_waypoint_idx_ = 0;
-                    stop_control_loop();
+                  
+                    if(this->now() - aruco_last_seen_timer < rclcpp::Duration(1s)){
+                        std::cout << "Aruco marker seen recently, switching to aruco mode" << std::endl;
+                        state_manager.setControlMode(3); // Switch to aruco mode
+
+                    }
+                    else{
+                        std::cout << "Aruco marker not seen for a while, searching for marker" << std::endl;
+                        cmd_vel.angular.z = 0.3; // Rotate in place to search for marker
+                        cmd_vel_pub->publish(cmd_vel);
+                    
+                    }
                     }    
             break;
         }
-        case 3: // stop
+        case 3: // Aruco Mode
             {
-            RCLCPP_INFO(this->get_logger(), "Target position reached");
-                    geometry_msgs::msg::Twist cmd_vel;
-                    cmd_vel.linear.x = 0.0;
-                    cmd_vel.angular.z = 0.0;
-                    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-                    state_manager.setTargetPosition(target_profile);
-                    reached_target_angle = false;
-                    previous_position_error.X.error = 0.0;
-                    previous_angle_error.Z.error = 0.0;
-                    //cmd_vel_pub->publish(cmd_vel);
-                    current_waypoint_idx_ = 0;
-                    stop_control_loop();
-              
-            break;
+                
+                std::cout << "IM RUNNING!!!!" << std::endl;
+
+                //geometry_msgs::msg::Twist cmd_vel= controller.od_PD_precision_controller(current_position, 
+                //        euler_angles,
+                //        aruco_position,
+                //        d_time,
+                //        previous_position_error,
+                //        previous_angle_error
+                //);
+                
+                //cmd_vel_pub->publish(cmd_vel);
+                //if(controller.euclidean_distance(current_position, TBD) < goal_distance.threshold){
+                //    RCLCPP_INFO(this->get_logger(), "Target position reached");
+                //    cmd_vel.linear.x = 0.0;
+                //    cmd_vel.angular.z = 0.0;
+                //    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+                //    state_manager.setTargetPosition(target_profile);
+                //    reached_target_angle = false;
+                //    previous_position_error.X.error = 0.0;
+                //    previous_angle_error.Z.error = 0.0;
+                //    cmd_vel_pub->publish(cmd_vel);
+                //    current_waypoint_idx_ = 0;
+                //    stop_control_loop();
+                //}
+                break;
             }
-        case 4: // manual control - not implemented yet, placeholder for future extension
+            
+        case 4: // manual control 
             {
                 if (!keyboard_running_)
                     start_keyboard_thread();
@@ -667,12 +713,64 @@ private:
                 
                 break;
             }
+        case 5: //Stop
+            {
+            stop_robot();
+            break;
+            }
         default:
             RCLCPP_WARN(this->get_logger(), "Unknown control mode: %d", state_manager.getControlMode());
             break;
         };
 
     }
+
+        void publish_zero_velocity()
+    {
+        geometry_msgs::msg::Twist cmd_vel;
+
+        cmd_vel.linear.x = 0.0;
+        cmd_vel.linear.y = 0.0;
+        cmd_vel.linear.z = 0.0;
+
+        cmd_vel.angular.x = 0.0;
+        cmd_vel.angular.y = 0.0;
+        cmd_vel.angular.z = 0.0;
+
+        cmd_vel_pub->publish(cmd_vel);
+    }
+
+
+    void stop_robot()
+    {
+        RCLCPP_WARN(this->get_logger(), "Stopping robot");
+
+        // Immediately send zero velocity
+        publish_zero_velocity();
+
+        // Reset target/controller state
+        Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
+        state_manager.setTargetPosition(target_profile);
+        state_manager.setGoalPosition(target_profile);
+
+        reached_target_angle = false;
+        current_waypoint_idx_ = 0;
+
+        previous_position_error.X.error = 0.0;
+        previous_angle_error.Z.error = 0.0;
+        previous_velocity_error.dX.error = 0.0;
+
+        // Stop the active control loop and return to idle
+        stop_control_loop();
+
+        // Send zero velocity again after stopping the timer
+        publish_zero_velocity();
+
+        RCLCPP_WARN(this->get_logger(), "Robot stopped");
+    }
+
+
+
 
     void stop_control_loop()
     {
