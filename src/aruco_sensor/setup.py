@@ -19,7 +19,7 @@ setup(
     license='TODO: License declaration',
     entry_points={
     'console_scripts': [
-        'aruco_node = aruco_sensor.aruco_node:main',
+        'sim_aruco_node = aruco_sensor.sim_aruco_node:main',
     ],
 },
 )

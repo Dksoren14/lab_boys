@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
 
 struct Stamped3DVector {
@@ -52,6 +53,7 @@ struct PositionError {
     PIDError Y;
     PIDError Z;
     PIDError Theta;
+    PIDError dX;
 };
 
 struct TurnResult {
@@ -68,6 +70,8 @@ public:
     Stamped3DVector getGlobalBasePosition();
     void setGlobalBaseOrientation(const Eigen::Quaterniond& orientation);
     Eigen::Quaterniond getGlobalBaseOrientation();
+    void setGlobalBaseVelocity(const Stamped3DVector& velocity);
+    Stamped3DVector getGlobalBaseVelocity();
     void setLocalVelocity(const Stamped3DVector& velocity);
     Stamped3DVector getLocalVelocity();
     void setTargetPosition(const Stamped3DVector& target_position);
@@ -78,6 +82,12 @@ public:
     PositionError getPositionError();
     void setGoalPosition(const Stamped3DVector& goal_position);
     Stamped3DVector getGoalPosition();
+    void setPath(std::vector<geometry_msgs::msg::PoseStamped>& path);
+    std::vector<geometry_msgs::msg::PoseStamped> getPath();
+    void setArucoPose(const Stamped3DVector& aruco_pose);
+    Stamped3DVector getArucoPose();
+    void setArucoOrientation(const Eigen::Quaterniond& aruco_orientation);
+    Eigen::Quaterniond getArucoOrientation();
     
 
 
@@ -88,6 +98,8 @@ private:
     Stamped3DVector global_base_position;
     std::mutex global_base_orientation_mutex;
     Eigen::Quaterniond global_base_orientation;
+    std::mutex global_base_velocity_mutex;
+    Stamped3DVector global_base_velocity;
     std::mutex local_velocity_mutex;
     Stamped3DVector local_velocity;
     std::mutex target_position_mutex;
@@ -97,6 +109,12 @@ private:
     PositionError position_error;
     std::mutex goal_position_mutex;
     Stamped3DVector goal_position;
+    std::mutex path_mutex;
+    std::vector<geometry_msgs::msg::PoseStamped> path;
+    std::mutex aruco_pose_mutex;
+    Stamped3DVector aruco_pose;
+    std::mutex aruco_orientation_mutex;
+    Eigen::Quaterniond aruco_orientation;
 
     int control_mode = 0; 
 };

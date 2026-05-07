@@ -1,0 +1,9 @@
+1. Lige nu bruger vi en simpel lidar, burde nok skiftes til en rigitg lidar fra acessory mappen
+
+2. Vi publisher fra gazebo joint states med 1000hz hvilket fucker med cpu brugen.
+
+3. Odom viser vores position i forhold til bevægelse. Så hvis vi kører ind i noget, bliver posiitonen forkert
+
+4. Vi har kun lidar foran. 
+
+5. Nav2 virker ikke før map er lavet, og vi gemmer aldrig mappet i realtime

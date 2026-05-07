@@ -30,6 +30,17 @@ Eigen::Quaterniond StateManager::getGlobalBaseOrientation() {
     return global_base_orientation;
 }
 
+Stamped3DVector StateManager::getGlobalBaseVelocity() {
+    std::lock_guard<std::mutex> lock(global_base_velocity_mutex);
+    return global_base_velocity;
+}
+
+void StateManager::setGlobalBaseVelocity(const Stamped3DVector& velocity) {
+    std::lock_guard<std::mutex> lock(global_base_velocity_mutex);
+    global_base_velocity = velocity;
+}
+
+
 void StateManager::setLocalVelocity(const Stamped3DVector& velocity) {
     std::lock_guard<std::mutex> lock(local_velocity_mutex);
     local_velocity = velocity;
@@ -81,3 +92,32 @@ Stamped3DVector StateManager::getGoalPosition() {
     return goal_position;
 }
 
+void StateManager::setPath(std::vector<geometry_msgs::msg::PoseStamped>& path) {
+    std::lock_guard<std::mutex> lock(path_mutex);
+    this->path = path;
+}
+
+std::vector<geometry_msgs::msg::PoseStamped> StateManager::getPath() {
+    std::lock_guard<std::mutex> lock(path_mutex);
+    return path;
+}   
+
+void StateManager::setArucoPose(const Stamped3DVector& aruco_pose) {
+    std::lock_guard<std::mutex> lock(aruco_pose_mutex);
+    this->aruco_pose = aruco_pose;
+}
+
+Stamped3DVector StateManager::getArucoPose() {
+    std::lock_guard<std::mutex> lock(aruco_pose_mutex);
+    return aruco_pose;
+}
+
+void StateManager::setArucoOrientation(const Eigen::Quaterniond& aruco_orientation) {
+    std::lock_guard<std::mutex> lock(aruco_orientation_mutex);
+    this->aruco_orientation = aruco_orientation;
+}
+
+Eigen::Quaterniond StateManager::getArucoOrientation() {
+    std::lock_guard<std::mutex> lock(aruco_orientation_mutex);
+    return aruco_orientation;
+}
