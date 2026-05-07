@@ -24,7 +24,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY worlds rviz_configs models
+  DIRECTORY worlds rviz_configs models maps
   DESTINATION share/${PROJECT_NAME}
 )
 
