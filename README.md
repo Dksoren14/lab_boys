@@ -55,7 +55,7 @@ ros2 action send_goal /control/chassis/base_command interfaces/action/BaseComman
 
 Launch simulated vioson algorithm:
 ```
-ros2 run sensors sim_aruco_node
+ros2 run sensors aruco_node
 ```
 
 
