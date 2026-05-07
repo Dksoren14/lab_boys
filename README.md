@@ -45,12 +45,12 @@ ros2 action send_goal /control/chassis/base_command interfaces/action/BaseComman
 
 Automated move command:
 ```
-ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
+ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
 ```
 
 Stop command:
 ```
-ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'stop', target_pose: []}"
+ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'stop', target_pose: []}"
 ```
 
 Launch simulated vioson algorithm:
@@ -104,7 +104,6 @@ sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
 
 pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
 
-bjen cam
 
 
 
