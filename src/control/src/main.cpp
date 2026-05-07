@@ -666,11 +666,11 @@ private:
         case 3: // Aruco Mode
             {
                 geometry_msgs::msg::Twist cmd_vel;
-                cmd_vel.angular.z = 0.0; // Stop rotating in place to search for marker
-                cmd_vel_pub->publish(cmd_vel);
                     
                 std::cout << "IM RUNNING!!!!" << std::endl;
 
+                cmd_vel.angular.z = 0.0; // Stop rotating in place to search for marker
+                cmd_vel_pub->publish(cmd_vel);
                 //geometry_msgs::msg::Twist cmd_vel= controller.od_PD_precision_controller(current_position, 
                 //        euler_angles,
                 //        aruco_position,
