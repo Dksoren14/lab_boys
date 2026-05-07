@@ -1,4 +1,4 @@
-/lab_base/chassis/**:
+/control/chassis/chassis:
   ros__parameters:
     turning_controller:
       kp: 1.0
