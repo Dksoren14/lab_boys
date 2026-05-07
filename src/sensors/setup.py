@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'aruco_sensor'
+package_name = 'sensors'
 
 setup(
     name=package_name,
@@ -19,7 +19,7 @@ setup(
     license='TODO: License declaration',
     entry_points={
     'console_scripts': [
-        'aruco_node = aruco_sensor.aruco_node:main',
+        'aruco_node = aruco_sensor.sim_aruco_node:main',
     ],
 },
 )
