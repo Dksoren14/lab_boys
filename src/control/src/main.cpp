@@ -224,7 +224,7 @@ private:
     {   
         
        
-       if (!path_client->wait_for_action_server(std::chrono::seconds(3)))
+       if (!path_client->wait_for_action_server(std::chrono::seconds(5)))
         {
             RCLCPP_WARN(this->get_logger(), "Planner not available");
             return;
