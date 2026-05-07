@@ -38,6 +38,29 @@ ros2 topic pub /model/r100/cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.5}, angular: {z: 0.0}}"
 ```
 
+Manual move command:
+```
+ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
+```
+
+Automated move command:
+```
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'goto', target_pose: [1.0, 1.0, 0.0]}"
+```
+
+Stop command:
+```
+ros2 action send_goal /lab_base/chassis/base_command interfaces/action/BaseCommand "{command: 'stop', target_pose: []}"
+```
+
+Launch simulated vioson algorithm:
+```
+ros2 run sensors sim_aruco_node
+```
+
+
+
+
 ### Launch Gazebo Simulation:
 This opens Gazebo with a simulated environment of the lab, with the R100(Ridgeback)
 
@@ -60,7 +83,7 @@ ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
 In another terminal write, then tap on the original terminal to make the robot move using WASD
 ```
 ros2 action send_goal /control/chassis/base_command interfaces/action/BaseCommand "{command: 'manual', target_pose: [1.0, 1.0, 0.0]}"
-
+```
 5. Save the map
 
 In a new terminal. {mapname} is just a placeholder for the name of the file. This should just be changed when saving the map to "laboratory" fx.
@@ -80,3 +103,10 @@ tilføj sudo apt update
 sudo apt install ros-${ROS_DISTRO}-unique-identifier-msgs
 
 pip3 install --user pyrealsense2 --break-system-packages :: Den skal hjælpe med cam uden at skal lave virtuel environment
+
+bjen cam
+
+
+
+
+
