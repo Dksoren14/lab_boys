@@ -34,7 +34,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration('rviz')
     control_enabled = LaunchConfiguration('control') #changed from lab_base to control
 
-    world = os.path.join(gazebo_pkg, 'worlds', 'labyrinth.world') #changed reference to gazebo pkg
+    world = os.path.join(gazebo_pkg, 'worlds', 'sim_environment.world') #changed reference to gazebo pkg
     rviz_config = os.path.join(gazebo_pkg, 'rviz_configs', 'default.rviz') #changed reference to gazebo pkg
 
     source_models = os.path.join(gazebo_pkg, 'models') #changed reference to gazebo pkg
