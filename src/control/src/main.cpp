@@ -210,6 +210,9 @@ private:
     rclcpp_action::Client<ComputePathToPose>::SharedPtr path_client;
     nav2_msgs::action::ComputePathToPose::Goal goal_msg;
     std::vector<geometry_msgs::msg::PoseStamped> path_;
+    std::shared_ptr<GoalHandleBaseCommand> active_goal_handle_;
+    std::shared_ptr<BaseCommandAction::Result> active_result_;
+    bool action_active_ = false;
 
     Stamped3DVector goal_position;
 
@@ -416,8 +419,12 @@ private:
                 reached_target_angle = false;
                 state_manager.setControlMode(control_mode);
                 start_control_loop(goal, result);
-                result->success = true;
-                goal_handle->succeed(result);
+                active_goal_handle_ = goal_handle;
+                active_result_ = result;
+                action_active_ = true;
+
+                start_control_loop(goal, result);
+                return;
             }
             else if (goal->command == "stop")
             {
@@ -499,6 +506,26 @@ private:
 
         if (last_time.nanoseconds() == 0) {
             last_time = now;
+        }
+
+        if (action_active_ &&
+            active_goal_handle_ &&
+            active_goal_handle_->is_canceling())
+        {
+            publish_zero_velocity();
+        
+            auto result = std::make_shared<BaseCommandAction::Result>();
+            result->success = false;
+            result->message = "Goal canceled";
+        
+            active_goal_handle_->canceled(result);
+        
+            action_active_ = false;
+            active_goal_handle_.reset();
+            active_result_.reset();
+        
+            stop_control_loop();
+            return;
         }
     
         double d_time = (now - last_time).seconds();
@@ -646,21 +673,13 @@ private:
                     previous_angle_error
                 );
                 cmd_vel_pub->publish(cmd_vel);
-            if(controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold){
-                    RCLCPP_INFO(this->get_logger(), "Target position reached");
-                  
-                    if(this->now() - aruco_last_seen_timer < rclcpp::Duration(1s)){
-                        std::cout << "Aruco marker seen recently, switching to aruco mode" << std::endl;
-                        state_manager.setControlMode(3); // Switch to aruco mode
-
-                    }
-                    else{
-                        std::cout << "Aruco marker not seen for a while, searching for marker" << std::endl;
-                        cmd_vel.angular.z = 0.3; // Rotate in place to search for marker
-                        cmd_vel_pub->publish(cmd_vel);
-                    
-                    }
-                    }    
+            if (controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold)
+            {
+                RCLCPP_INFO(this->get_logger(), "Target position reached");
+            
+                finish_action_success("Robot reached target position");
+                return;
+            }
             break;
         }
         case 3: // Aruco Mode
@@ -741,6 +760,26 @@ private:
         cmd_vel.angular.z = 0.0;
 
         cmd_vel_pub->publish(cmd_vel);
+    }
+
+    void finish_action_success(const std::string & message)
+    {
+        if (!action_active_ || !active_goal_handle_) {
+            return;
+        }
+
+        auto result = std::make_shared<BaseCommandAction::Result>();
+        result->success = true;
+        result->message = message;
+
+        active_goal_handle_->succeed(result);
+
+        action_active_ = false;
+        active_goal_handle_.reset();
+        active_result_.reset();
+
+        stop_control_loop();
+        publish_zero_velocity();
     }
 
 
