@@ -1,0 +1,34 @@
+/control/chassis/chassis:
+  ros__parameters:
+    turning_controller:
+      kp: 0.597
+      kd: 0.01
+    waypoint_controller:
+      angular:
+        kp: 1.7911
+        kd: 0.01
+      linear:
+        kp: 0.896
+        kd: 0.01
+    linear_precision_controller:
+      angular:
+        kp: 3.582
+        kd: 0.1
+      linear:
+        kp: 1.7911
+        kd: 0.01  #maybe add angular to case 2 controller
+    aruco_controller:
+      angular:
+        kp: 1.0
+        kd: 0.01
+      linear:
+        kp: 0.896
+        kd: 0.01
+    target_distance:
+      angular_out: 0.1
+      angular_in: 0.025
+      waypoint: 1.0
+    goal_distance:
+      threshold: 0.05
+    odom_subscriber:
+      topic: "/odom"

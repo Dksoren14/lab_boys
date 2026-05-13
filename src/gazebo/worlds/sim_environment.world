@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+
+    <!-- Lighting -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/sun</uri>
+    </include>
+
+    <!-- Ground -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/ground%20plane</uri>
+    </include>
+
+    <!-- Table -->
+    <include>
+      <uri>model://table_v2</uri>
+      <pose>-2.57 -2.5975 0 0 0 0</pose>
+      <name>table1</name>
+    </include> 
+
+    <include>
+      <uri>model://table_v2</uri>
+      <pose>2.57 2.5975 0 0 0 0</pose>
+      <name>table2</name>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_21</uri>
+      <name>aruco_marker_21</name>
+      <pose>3.0 1.65 0.02 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_22</uri>
+      <name>aruco_marker_22</name>
+      <pose>-3.0 -1.65 0.02 0 0 3.14</pose>
+    </include>
+
+    <model name="camera_box">
+      <static>true</static>
+      <pose>0.11 2.90 0.3 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="box">
+      <static>true</static>
+      <pose>-2.0 2.0 0.12 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>0.55 0.3 0.24</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>0.55 0.3 0.24</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="board">
+      <static>true</static>
+      <pose>-0.50 -1 0.7875 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>1.20 0.05 1.575</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>1.20 0.05 1.575</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>    
+    
+    <model name="wall1">
+      <static>true</static>
+      <pose>3.42 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall2">
+      <static>true</static>
+      <pose>-3.42 0 1 0 0 1.57</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall3">
+      <static>true</static>
+      <pose>0 3.29 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="wall4">
+      <static>true</static>
+      <pose>0 -3.29 1 0 0 0</pose>
+      <link name="link">
+        <visual name="visual"> <!--fysisk størrelse-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+          <material> <!--farve-->
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision"> <!--collision-->
+          <geometry>
+            <box>
+              <size>9 0.5 2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"/>
+  </world>
+</sdf>
