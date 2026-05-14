@@ -83,6 +83,10 @@ class Mission_Node(Node):
                 )
                 continue
 
+            if command_text == "manual":
+                self.send_manual_command()
+                continue
+
             if command_text == "home":
                 self.send_movement_command([0.0, 0.0, 0.0])
                 continue
@@ -319,7 +323,7 @@ class Mission_Node(Node):
         stop_future.add_done_callback(self.stop_response_callback)
 
         return True
-
+    
     def stop_response_callback(self, future):
         try:
             stop_goal_handle = future.result()
@@ -366,6 +370,64 @@ class Mission_Node(Node):
         self.current_route = []
         self.current_route_index = 0
         self.returning_home_after_experiment = False
+
+    def send_manual_command(self):
+        if self.action_running:
+            self.get_logger().warn("Cannot enter manual mode because robot is already moving.")
+            return False
+
+        if self.experiment_active:
+            self.get_logger().warn("Cannot enter manual mode during an experiment.")
+            return False
+
+        if not self.base_client.server_is_ready():
+            self.get_logger().warn("Base action server is not ready yet.")
+            return False
+
+        goal_msg = BaseCommand.Goal()
+        goal_msg.command = "manual"
+        goal_msg.target_pose = []
+
+        self.get_logger().info("Sending manual command to base.")
+
+        manual_future = self.base_client.send_goal_async(goal_msg)
+        manual_future.add_done_callback(self.manual_response_callback)
+
+        return True
+
+
+    def manual_response_callback(self, future):
+        try:
+            manual_goal_handle = future.result()
+        except Exception as error:
+            self.get_logger().error(f"Manual response failed: {error}")
+            return
+
+        if not manual_goal_handle.accepted:
+            self.get_logger().error("Manual command was rejected.")
+            return
+
+        self.get_logger().info("Manual command accepted. Waiting for result...")
+
+        result_future = manual_goal_handle.get_result_async()
+        result_future.add_done_callback(self.manual_result_callback)
+
+
+    def manual_result_callback(self, future):
+        try:
+            result = future.result().result
+        except Exception as error:
+            self.get_logger().error(f"Manual result failed: {error}")
+            return
+
+        if result.success:
+            self.get_logger().info("Manual mode activated.")
+            self.get_logger().info("Use 'stop' to exit manual mode.")
+        else:
+            self.get_logger().error(f"Manual command failed: {result.message}")
+
+
+
 
 
 def main(args=None):

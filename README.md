@@ -96,6 +96,55 @@ In a new terminal. {mapname} is just a placeholder for the name of the file. Thi
 ros2 run nav2_map_server map_saver_cli -f ~/lab_boys/src/gazebo/maps/{mapname}
 ```
 
+### How to use mission script:
+
+First you need to start rviz and Gazebo with this command:
+```
+ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
+```
+
+
+
+In a new terminal you need to activate the camera with this command:
+Simulated vision algorithm:
+```
+ros2 run sensors sim_aruco_node
+```
+
+R100 vision algorithm:
+```
+ros2 run sensors r100_aruco_node
+```
+
+In a new terminal the mission script must be launched with this command
+```
+ros2 run claus mission_script.py
+```
+when this is launched you have several commads you can type into the terminal
+
+First you need to write 
+```
+Manual
+```
+Use WASD to move around and map 
+
+Now you can got to a single workstation with:
+```
+goto workstation 1 / 2
+```
+
+If you want to go to workstations in a predifined order you must type:
+```
+execute experiment 1 / 2 / 3 / 4
+```
+
+
+If you ever need to stop the robot mid movement simply write:
+```
+stop
+```
+
+
 ### NOTE TIL SIG SELV (Søren)/Setup script:
 ```
 cd setup
