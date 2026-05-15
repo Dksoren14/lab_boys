@@ -372,12 +372,8 @@ class Mission_Node(Node):
         self.returning_home_after_experiment = False
 
     def send_manual_command(self):
-        if self.action_running:
+        if self.action_running or self.experiment_active:
             self.get_logger().warn("Cannot enter manual mode because robot is already moving.")
-            return False
-
-        if self.experiment_active:
-            self.get_logger().warn("Cannot enter manual mode during an experiment.")
             return False
 
         if not self.base_client.server_is_ready():
