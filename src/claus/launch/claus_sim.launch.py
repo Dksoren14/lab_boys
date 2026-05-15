@@ -33,6 +33,7 @@ def generate_launch_description():
     gui = LaunchConfiguration('gui')
     rviz = LaunchConfiguration('rviz')
     control_enabled = LaunchConfiguration('control') #changed from lab_base to control
+    aruco = LaunchConfiguration('aruco')
 
     world = os.path.join(gazebo_pkg, 'worlds', 'sim_environment.world') #changed reference to gazebo pkg
     rviz_config = os.path.join(gazebo_pkg, 'rviz_configs', 'default.rviz') #changed reference to gazebo pkg
@@ -122,6 +123,16 @@ def generate_launch_description():
         condition=IfCondition(rviz),
         output='screen',
     )
+
+    sim_aruco_node = Node(
+    package='sensors',
+    executable='sim_aruco_node',
+    name='claus_sim_aruco_sensor',
+    condition=IfCondition(aruco),
+    output='screen',
+)
+
+
 
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -314,6 +325,11 @@ def generate_launch_description():
             default_value='true',
             description='Start the lab_chassis node that publishes /cmd_vel.',
         ),
+        DeclareLaunchArgument(
+            'aruco',
+            default_value='true',
+            description='Start the simulated ArUco marker detection node.',
+        ),
         set_gz_resources,
         set_localhost_discovery,
         gazebo_server,
@@ -322,6 +338,7 @@ def generate_launch_description():
         TimerAction(period=3.0, actions=[robot_state_publisher]),
         TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states, lidar_merger]),
         TimerAction(period=8.0, actions=[rviz_node]),
+        TimerAction(period=9.0, actions=[sim_aruco_node]),
         TimerAction(period=10.0, actions=[slam]),
         TimerAction(period=15.0, actions=[keepout_map_server, costmap_filter_info_server]),
         TimerAction(period=20.0, actions=[

@@ -98,18 +98,14 @@ ros2 run nav2_map_server map_saver_cli -f ~/lab_boys/src/gazebo/maps/{mapname}
 
 ### How to use mission script:
 
-First you need to start rviz and Gazebo with this command:
+First you need to start rviz, Gazebo and simulated camera with this command:
 ```
-ros2 launch claus claus_sim.launch.py rviz:=true gui:=true control:=true
+ros2 launch claus claus_sim.launch.py gui:=true rviz:=true control:=true aruco:=true
 ```
 
 
 
-In a new terminal you need to activate the camera with this command:
-Simulated vision algorithm:
-```
-ros2 run sensors sim_aruco_node
-```
+In a new terminal you need to activate the physical camera with this command:
 
 R100 vision algorithm:
 ```
