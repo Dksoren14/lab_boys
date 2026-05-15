@@ -48,7 +48,7 @@ class Mission_Node(Node):
         self.wait_timer = None
 
         # Time to wait at each workstation before continuing
-        self.wait_at_station_s = 20.0
+        self.wait_at_station_s = 5.0
 
         self.get_logger().info("Mission node started.")
 
@@ -104,15 +104,14 @@ class Mission_Node(Node):
                 continue
 
             self.get_logger().warn(
-                "Unknown command. Try: 'goto workstation 1', 'execute experiment 1', 'home', or 'stop'"
+                "Unknown command. Try: 'goto ws 1', 'execute experiment 1', 'home', or 'stop'"
             )
 
     def parse_goto_command(self, command_text):
         # Accepts:
-        #   goto workstation 1
-        #   goto workstation1
+        #   goto ws 1
 
-        workstation_pattern = r"^goto\s+workstation\s*(\d+)$"
+        workstation_pattern = r"^goto\s+ws\s*(\d+)$"
         workstation_match = re.match(workstation_pattern, command_text)
 
         if not workstation_match:
@@ -131,10 +130,10 @@ class Mission_Node(Node):
 
     def parse_experiment_command(self, command_text):
         # Accepts:
-        #   execute experiment 1
-        #   execute experiment1
+        #   exp 1
+        #   exp1
 
-        experiment_pattern = r"^execute\s+experiment\s*(\d+)$"
+        experiment_pattern = r"^exp\s*(\d+)$"
         experiment_match = re.match(experiment_pattern, command_text)
 
         if not experiment_match:
@@ -165,7 +164,7 @@ class Mission_Node(Node):
         if not rclpy.ok():
             return
 
-        # Important: if stop was pressed during the 20 second wait,
+        # Important: if stop was pressed during the 5 second wait,
         # the old timer may still fire. This prevents the experiment from continuing.
         if not self.experiment_active:
             self.get_logger().warn("No active experiment. Not sending next step.")
