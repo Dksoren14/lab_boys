@@ -25,7 +25,7 @@
         kp: 0.896
         kd: 0.01
     target_distance:
-      angular_out: 0.1
+      angular_out: 0.2
       angular_in: 0.025
       waypoint: 1.0
     goal_distance:
