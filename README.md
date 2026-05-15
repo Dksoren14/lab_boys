@@ -126,12 +126,12 @@ Use WASD to move around and map
 
 Now you can got to a single workstation with:
 ```
-goto workstation 1 / 2
+goto ws 1 / 2
 ```
 
 If you want to go to workstations in a predifined order you must type:
 ```
-execute experiment 1 / 2 / 3 / 4
+exp 1 / 2 / 3 / 4
 ```
 
 
