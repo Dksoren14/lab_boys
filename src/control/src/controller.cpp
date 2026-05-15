@@ -75,8 +75,8 @@ TurnResult Controller::od_PD_turn_controller( //For moving away from table, just
             previous_angle_error.Z.error = local_angle_error;
             
 
-            output_velocity.linear.x = std::clamp(output_velocity.linear.x, -0.3, 0.3);
-            output_velocity.linear.y = std::clamp(output_velocity.linear.y, -0.3, 0.3);
+            output_velocity.linear.x = std::clamp(output_velocity.linear.x, -0.1, 0.1);
+            output_velocity.linear.y = std::clamp(output_velocity.linear.y, -0.1, 0.1);
              //Speed limit after Ridgeback Max Speed
     return TurnResult{output_velocity, local_angle_error};
 
