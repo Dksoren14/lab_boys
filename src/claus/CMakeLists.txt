@@ -43,5 +43,10 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}/script
 )
 
+install(PROGRAMS
+  script/scan_volatile_relay.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 ament_package()

@@ -18,7 +18,7 @@ from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
 )
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetParameter
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
@@ -290,23 +290,32 @@ def generate_launch_description():
         }],
         output='screen',
     )
-    lidar_merger =Node(
+    lidar_merger = Node(
         package='ira_laser_tools',
         executable='laserscan_multi_merger',
         name='laserscan_multi_merger',
+
         parameters=[{
             'use_sim_time': True,
             'destination_frame': 'r100/chassis_link',
             'cloud_destination_topic': '/merged_cloud',
             'scan_destination_topic': '/scan',
             'laserscan_topics': 'sensors/front_lidar/scan sensors/rear_lidar/scan',
+
             'angle_min': -3.14159,
             'angle_max':  3.14159,
-            'angle_increment': 0.0087,  # ~0.5 degree resolution (720 samples / 360°)
-            'scan_time': 0.1,           # matches your 10hz update rate
-            'range_min': 0.05,          # matches your lidar range min
-            'range_max': 20.0,          # matches your lidar range max
+            'angle_increment': 0.0087,
+            'scan_time': 0.1,
+            'range_min': 0.05,
+            'range_max': 20.0,          
         }]
+    )
+
+    scan_volatile_relay = Node(
+        package='claus',
+        executable='scan_volatile_relay.py',
+        name='scan_volatile_relay',
+        output='screen',
     )
 
     return LaunchDescription([
@@ -337,6 +346,7 @@ def generate_launch_description():
         gazebo_topic,
         TimerAction(period=3.0, actions=[robot_state_publisher]),
         TimerAction(period=6.0, actions=[spawn_lab_robot, throttle_joint_states, lidar_merger]),
+        TimerAction(period=7.0, actions=[scan_volatile_relay]),
         TimerAction(period=8.0, actions=[rviz_node]),
         TimerAction(period=9.0, actions=[sim_aruco_node]),
         TimerAction(period=10.0, actions=[slam]),
