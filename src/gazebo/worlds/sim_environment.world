@@ -37,6 +37,13 @@
       <pose>-3.0 -1.65 0.02 0 0 3.14</pose>
     </include>
 
+    <include>
+      <uri>model://aruco_marker_20</uri>
+      <name>aruco_marker_20</name>
+      <pose>0.87 0.0 0.02 0 0 0</pose>
+    </include>
+
+
     <model name="camera_box">
       <static>true</static>
       <pose>0.11 2.90 0.3 0 0 0</pose>
