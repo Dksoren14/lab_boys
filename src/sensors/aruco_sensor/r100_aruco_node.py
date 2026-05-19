@@ -161,6 +161,16 @@ def detect_markers(config, node):
                         T_cam_marker[:3, 3] = tvec.flatten()
                         T_world_marker = matrix_transformation(T_base_cam, T_cam_marker, g_pose, g_orientation)
                         node.publish_marker_pose(T_world_marker, marker_id)
+                        cv2.drawFrameAxes(
+                            frame,
+                            camera_matrix,
+                            dist_coeffs,
+                            rvec,
+                            tvec,
+                            marker_length * 0.5
+                        )
+
+
                     center_x = int(corner_points[:, 0].mean())
                     center_y = int(corner_points[:, 1].mean())
 
