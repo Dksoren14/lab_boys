@@ -35,7 +35,7 @@ def generate_launch_description():
     control_enabled = LaunchConfiguration('control') #changed from lab_base to control
     aruco = LaunchConfiguration('aruco')
 
-    world = os.path.join(gazebo_pkg, 'worlds', 'sim_environment.world') #changed reference to gazebo pkg
+    world = os.path.join(gazebo_pkg, 'worlds', 'laboratory.world') #changed reference to gazebo pkg
     rviz_config = os.path.join(gazebo_pkg, 'rviz_configs', 'default.rviz') #changed reference to gazebo pkg
 
     source_models = os.path.join(gazebo_pkg, 'models') #changed reference to gazebo pkg
