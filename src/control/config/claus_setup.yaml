@@ -19,13 +19,14 @@
         kd: 0.01  #maybe add angular to case 2 controller
     aruco_controller:
       angular:
-        kp: 1.0
+        kp: 0.6
         kd: 0.01
       linear:
-        kp: 0.896
+        kp: 0.45
         kd: 0.01
     target_distance:
-      angular: 0.1
+      angular_out: 0.2
+      angular_in: 0.025
       waypoint: 1.0
     goal_distance:
       threshold: 0.05

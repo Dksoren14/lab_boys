@@ -78,7 +78,7 @@ def generate_launch_description():
                 '/lab_boys/out/base_state',
             ),
             (
-                'cmd_vel',
+                '/cmd_vel',
                 '/ridgeback_velocity_controller/cmd_vel',
             ),
         ],
@@ -123,6 +123,12 @@ def generate_launch_description():
             'range_max': 20.0,          # matches your lidar range max
         }]
     )
+    #scan_volatile_relay = Node(
+    #    package='claus',
+    #    executable='scan_volatile_relay.py',
+    #    name='scan_volatile_relay',
+    #    output='screen',
+    #)
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -133,6 +139,7 @@ def generate_launch_description():
         set_gz_resources,
         set_localhost_discovery,
         TimerAction(period=6.0, actions=[lidar_merger]),
+        #TimerAction(period=7.0, actions=[scan_volatile_relay]),
         TimerAction(period=8.0, actions=[rviz_node]),
         TimerAction(period=10.0, actions=[slam]),
         TimerAction(
