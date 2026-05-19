@@ -26,7 +26,8 @@
           </box>
         </geometry>
         <material>
-          <diffuse>1.0 1.0 1.0</diffuse>
+          <ambient>1.0 1.0 1.0 1</ambient>
+          <diffuse>1.0 1.0 1.0 1</diffuse>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
             <name>Gazebo/Wood</name>

@@ -14,155 +14,79 @@
 
     <!-- Table -->
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-2.07 -2.6 0 0 0 1.57</pose>
+      <uri>model://table</uri>
+      <pose>0 -2 0 0 0 0</pose>
       <name>table1</name>
     </include> 
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-2.07 -1.4 0 0 0 1.57</pose>
+      <uri>model://table</uri>
+      <pose>4.39 -2 0 0 0 0</pose>
       <name>table2</name>
     </include>
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-2.07 -0.2 0 0 0 1.57</pose>
+      <uri>model://table</uri>
       <name>table3</name>
+      <pose>4.39 0.8 0.02 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-1.185 -2.6 0 0 0 1.57</pose>
+      <uri>model://table</uri>
       <name>table4</name>
+      <pose>0 0.8 0.02 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-1.185 -1.4 0 0 0 1.57</pose>
+      <uri>model://table</uri>
       <name>table5</name>
+      <pose>-4.39 0.8 0.02 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>-1.185 -0.2 0 0 0 1.57</pose>
+      <uri>model://table</uri>
       <name>table6</name>
+      <pose>-4.39 -2 0.02 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://table_v2</uri>
-      <pose>2.1 -2.6 0 0 0 1.57</pose>
+      <uri>model://table</uri>
       <name>table7</name>
-    </include>
-
-    <include>
-      <uri>model://table_v2</uri>
-      <pose>2.1 -1.4 0 0 0 1.57</pose>
-      <name>table8</name>
-    </include>
-    
-    <include>
-      <uri>model://table_v2</uri>
-      <pose>2.1 -0.2 0 0 0 1.57</pose>
-      <name>table9</name>
-    </include>
-
-    <include>
-      <uri>model://table_v2</uri>
-      <pose>2.985 -2.6 0 0 0 1.57</pose>
-      <name>table10</name>
-    </include>
-
-    <include>
-      <uri>model://table_v2</uri>
-      <pose>2.985 -1.4 0 0 0 1.57</pose>
-      <name>table11</name>
-    </include>
-
-    <include>
-      <uri>model://table_v2</uri>
-      <pose>2.985 -0.2 0 0 0 1.57</pose>
-      <name>table12</name>
+      <pose>5.985 -0.6 0.02 0 0 1.57</pose>
     </include>
 
     <include>
       <uri>model://fumehood</uri>
-      <pose>6.7429 -1.2105 0 0 0 4.71</pose>
       <name>fumehood1</name>
+      <pose>0 4.5 0.02 0 0 0</pose>
     </include>
 
     <include>
       <uri>model://fumehood</uri>
-      <pose>6.7429 0.7 0 0 0 4.71</pose>
       <name>fumehood2</name>
+      <pose>1.9 4.5 0.02 0 0 0</pose>
     </include>
 
     <include>
       <uri>model://fumehood</uri>
-      <pose>6.7429 2.6 0 0 0 4.71</pose>
       <name>fumehood3</name>
+      <pose>-1.9 4.5 0.02 0 0 0</pose>
     </include>
 
     <include>
       <uri>model://fumehood</uri>
-      <pose>-6.7429 -2.7 0 0 0 1.57</pose>
       <name>fumehood4</name>
+      <pose>-3.8 4.5 0.02 0 0 0</pose>
     </include>
-
-    <include>
-      <uri>model://fumehood</uri>
-      <pose>-6.7429 -0.8 0 0 0 1.57</pose>
-      <name>fumehood5</name>
-    </include>
-
-    <include>
-      <uri>model://fumehood</uri>
-      <pose>-6.7429 1.1 0 0 0 1.57</pose>
-      <name>fumehood6</name>
-    </include>
-
-    <model name="window">
-      <static>true</static>
-      <pose>0.3196 -2.1374 0.7875 0 0 0</pose>
-      <link name="link">
-        <visual name="visual"> <!--fysisk størrelse-->
-          <geometry>
-            <box>
-              <size>1.20 0.05 1.575</size>
-            </box>
-          </geometry>
-          <material> <!--farve-->
-            <ambient>0.7 0.8 0.9 0.3</ambient>
-            <diffuse>0.7 0.8 0.9 0.3</diffuse>
-            <specular>1 1 1 1</specular>
-            <pbr>
-              <metal>
-                <metalness>0.0</metalness>
-                <roughness>0.02</roughness>
-              </metal>
-            </pbr>
-          </material>
-          <transparency>0.6</transparency>
-        </visual>
-        <collision name="collision"> <!--collision-->
-          <geometry>
-            <box>
-              <size>1.20 0.05 1.575</size>
-            </box>
-          </geometry>
-        </collision>
-      </link>
-    </model>    
-
 
     <model name="wall1">
       <static>true</static>
-      <pose>7 0 1 0 0 1.57</pose>
+      <pose>8.885 0 1 0 0 1.57</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
           <geometry>
             <box>
-              <size>9 0.5 2</size>
+              <size>12 0.5 2</size>
             </box>
           </geometry>
           <material> <!--farve-->
@@ -173,7 +97,7 @@
         <collision name="collision"> <!--collision-->
           <geometry>
             <box>
-              <size>9 0.5 2</size>
+              <size>12 0.5 2</size>
             </box>
           </geometry>
         </collision>
@@ -182,12 +106,12 @@
 
     <model name="wall2">
       <static>true</static>
-      <pose>-7 0 1 0 0 1.57</pose>
+      <pose>-8.085 0 1 0 0 1.57</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
           <geometry>
             <box>
-              <size>9 0.5 2</size>
+              <size>12 0.5 2</size>
             </box>
           </geometry>
           <material> <!--farve-->
@@ -198,7 +122,7 @@
         <collision name="collision"> <!--collision-->
           <geometry>
             <box>
-              <size>9 0.5 2</size>
+              <size>12 0.5 2</size>
             </box>
           </geometry>
         </collision>
@@ -207,12 +131,12 @@
 
     <model name="wall3">
       <static>true</static>
-      <pose>0 3.5 1 0 0 0</pose>
+      <pose>0 5 1 0 0 0</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
           <geometry>
             <box>
-              <size>14 0.5 2</size>
+              <size>18 0.5 2</size>
             </box>
           </geometry>
           <material> <!--farve-->
@@ -223,7 +147,7 @@
         <collision name="collision"> <!--collision-->
           <geometry>
             <box>
-              <size>14 0.5 2</size>
+              <size>18 0.5 2</size>
             </box>
           </geometry>
         </collision>
@@ -232,12 +156,12 @@
 
     <model name="wall4">
       <static>true</static>
-      <pose>0 -3.5 1 0 0 0</pose>
+      <pose>0 -4.9 1 0 0 0</pose>
       <link name="link">
         <visual name="visual"> <!--fysisk størrelse-->
           <geometry>
             <box>
-              <size>14 0.5 2</size>
+              <size>18 0.5 2</size>
             </box>
           </geometry>
           <material> <!--farve-->
@@ -248,7 +172,7 @@
         <collision name="collision"> <!--collision-->
           <geometry>
             <box>
-              <size>14 0.5 2</size>
+              <size>18 0.5 2</size>
             </box>
           </geometry>
         </collision>

@@ -156,8 +156,8 @@ def generate_launch_description():
         arguments=[
             '-topic', '/r100/robot_description',
             '-name', 'r100',
-            '-x', '0',
-            '-y', '0',
+            '-x', '-0.65', #-0.65 if using laboratory.world. 0.0 otherwise
+            '-y', '0', 
             '-z', '0.4',
         ],
         output='screen',
