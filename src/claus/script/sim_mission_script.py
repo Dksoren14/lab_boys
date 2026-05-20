@@ -28,6 +28,13 @@ class Mission_Node(Node):
         self.workstations = {
             "workstation1": [2.0, 1.0, 0.0],
             "workstation2": [-2.0, -1.0, 0.0],
+            "workstation3": [-3.0, 2.5, 0.0],
+            "workstation4": [-0.5, -0.5, 0.0],
+            "workstation5": [7.0, 0.0, 0.0],
+            "workstation6": [0.0, -0.5, 0.0],
+            "workstation7": [-4.5, -3.0, 0.0],
+            "workstation8": [0.5, -3.0, 0.0],
+            "workstation9": [5.0, -3.0, 0.0],
         }
 
         # Experiments are just workstation sequences.
@@ -104,7 +111,7 @@ class Mission_Node(Node):
                 continue
 
             self.get_logger().warn(
-                "Unknown command. Try: 'goto ws 1', 'execute experiment 1', 'home', or 'stop'"
+                "Unknown command. Try: 'goto ws 1', 'exp 1', 'home', or 'stop'"
             )
 
     def parse_goto_command(self, command_text):

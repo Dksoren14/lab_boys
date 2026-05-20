@@ -79,6 +79,53 @@
       <pose>-3.8 4.5 0.02 0 0 0</pose>
     </include>
 
+    <include>
+      <uri>model://aruco_marker_20</uri>
+      <name>aruco_marker_20</name>
+      <pose>-5.52 -2.9 0.02 0 0 3.14</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_21</uri>
+      <name>aruco_marker_21</name>
+      <pose>1.23 -2.9 0.02 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_22</uri>
+      <name>aruco_marker_22</name>
+      <pose>2.23 3.2 0.02 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_23</uri>
+      <name>aruco_marker_23</name>
+      <pose>-1.23 -0.15 0.02 0 0 3.14</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_24</uri>
+      <name>aruco_marker_24</name>
+      <pose>-4.13 3.2 0.02 0 0 3.14</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_25</uri>
+      <name>aruco_marker_25</name>
+      <pose>6.9 0.63 0.02 0 0 1.57079633 </pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_marker_26</uri>
+      <name>aruco_marker_26</name>
+      <pose>5.65 -2.9 0.02 0 0 0</pose>
+    </include>
+
+
+
+
+
+
     <model name="wall1">
       <static>true</static>
       <pose>8.885 0 1 0 0 1.57</pose>

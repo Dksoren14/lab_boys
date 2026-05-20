@@ -398,6 +398,12 @@ private:
         double current_velocity = transformation.velocity_vector(state_manager.getGlobalBasePosition(), previous_position, d_time);
         msg.velocity_vector = current_velocity;
 
+        Stamped3DVector true_goal_position = state_manager.getTrueGoalPosition();
+        double true_goal_x = true_goal_position.x();
+        double true_goal_y = true_goal_position.y();
+        double true_goal_z = true_goal_position.z();
+        msg.goal_pos = {true_goal_x, true_goal_y, true_goal_z};
+
         base_state_pub->publish(msg);
         
     }
@@ -625,7 +631,7 @@ private:
                                                     way_point.pose.position.z);
 
                 state_manager.setTargetPosition(target_position);
-                
+                state_manager.setTrueGoalPosition(target_position); 
                 TurnResult cmd_vel= controller.od_PD_turn_controller(current_position, 
                         euler_angles,
                         target_position,
@@ -677,6 +683,7 @@ private:
 
                
                 //The linear controller
+                state_manager.setTrueGoalPosition(target_position); // For the linear controller, we want to set the true goal to the current waypoint, not the final goal, to avoid overshooting and oscillations
                 geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller_2(
                     current_position,
                     euler_angles,
@@ -710,6 +717,7 @@ private:
         case 2: 
         {
             // Final precision controller, looking only at goal
+            state_manager.setTrueGoalPosition(goal_position); // Ensure true goal is set to final goal for precision controller
             geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_precision_controller(
                     current_position,
                     euler_angles,
@@ -742,7 +750,7 @@ private:
         case 3: // Aruco Mode
             {
                  
-                
+                state_manager.setTrueGoalPosition(goal_position); // Ensure true goal is set to final goal for precision controller
                 TurnResult cmd_vel= controller.od_PD_precision_controller(current_position, 
                         euler_angles,
                         transformed_aruco,

@@ -121,3 +121,13 @@ Eigen::Quaterniond StateManager::getArucoOrientation() {
     std::lock_guard<std::mutex> lock(aruco_orientation_mutex);
     return aruco_orientation;
 }
+
+Stamped3DVector StateManager::getTrueGoalPosition() {
+    std::lock_guard<std::mutex> lock(true_goal_position_mutex);
+    return true_goal_position;
+}
+
+void StateManager::setTrueGoalPosition(const Stamped3DVector& true_goal_position_) {
+    std::lock_guard<std::mutex> lock(true_goal_position_mutex);
+    true_goal_position = true_goal_position_;
+}

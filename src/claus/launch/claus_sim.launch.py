@@ -228,7 +228,7 @@ def generate_launch_description():
         parameters=[
             params_nav2,
             {'use_sim_time': True},
-            {'yaml_filename': os.path.join(get_package_share_directory('gazebo'), 'maps', 'sim_map.yaml')},
+            {'yaml_filename': os.path.join(get_package_share_directory('gazebo'), 'maps', 'Test_Lab_01.yaml')},
             {'topic_name': '/keepout_filter_mask'},
             {'frame_id': 'map'},
         ],

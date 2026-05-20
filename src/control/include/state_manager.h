@@ -88,6 +88,8 @@ public:
     Stamped3DVector getArucoPose();
     void setArucoOrientation(const Eigen::Quaterniond& aruco_orientation);
     Eigen::Quaterniond getArucoOrientation();
+    void setTrueGoalPosition(const Stamped3DVector& true_goal_position);
+    Stamped3DVector getTrueGoalPosition();
     
 
 
@@ -115,6 +117,8 @@ private:
     Stamped3DVector aruco_pose;
     std::mutex aruco_orientation_mutex;
     Eigen::Quaterniond aruco_orientation;
+    std::mutex true_goal_position_mutex;
+    Stamped3DVector true_goal_position;
 
     int control_mode = 0; 
 };

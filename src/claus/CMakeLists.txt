@@ -39,9 +39,16 @@ install(
 )
 
 install(PROGRAMS
-  script/mission_script.py
+  script/sim_mission_script.py
   DESTINATION lib/${PROJECT_NAME}/script
 )
+
+install(PROGRAMS
+  script/r100_mission_script.py
+  DESTINATION lib/${PROJECT_NAME}/script
+)
+
+
 
 install(PROGRAMS
   script/scan_volatile_relay.py
