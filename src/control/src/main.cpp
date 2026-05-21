@@ -252,7 +252,7 @@ private:
 
 
     //For blending control systems
-    geometry_msgs::msg::Twist prev_cmd_vel_;
+    geometry_msgs::msg::Twist prev_cmd_vel;
     float blend_alpha = 1.0f;
     float blend_rate = 0.7f;
     bool is_blending = false;
@@ -276,21 +276,22 @@ private:
     
     void publish_blended_cmd_vel(const geometry_msgs::msg::Twist& new_cmd_vel)
     {
+        geometry_msgs::msg::Twist blended_cmd_vel;
         if (is_blending)
         {
-            blend_alpha += blend_rate;
+            blend_alpha = std::min(1.0f, blend_alpha + blend_rate);
+            blended_cmd_vel = blend_twist(prev_cmd_vel, new_cmd_vel, blend_alpha);
             if (blend_alpha >= 1.0f)
             {
-                blend_alpha = 1.0f;
                 is_blending = false;
             }
-            geometry_msgs::msg::Twist blended_cmd_vel = blend_twist(prev_cmd_vel_, new_cmd_vel, blend_alpha);
-            cmd_vel_pub->publish(blended_cmd_vel);
         }
         else
         {
-            cmd_vel_pub->publish(new_cmd_vel);
+            blended_cmd_vel = new_cmd_vel;
         }
+        cmd_vel_pub->publish(blended_cmd_vel);
+        prev_cmd_vel = blended_cmd_vel;
     }
 
     void replan()
@@ -630,9 +631,21 @@ private:
         Stamped3DVector aruco_position = state_manager.getArucoPose();
         Eigen::Vector3d aruco_orientation = transformation.quaternion_to_euler(state_manager.getArucoOrientation());
         Stamped3DVector transformed_aruco = transformation.aruco_translation(aruco_position, aruco_orientation, current_position, euler_angles);
-        std::cout << "Aruco Position: x=" << aruco_position.x() << ", y=" << aruco_position.y() << ", z=" << aruco_position.z() << std::endl;
-        std::cout << "Transformed Aruco Position: x=" << transformed_aruco.x() << ", y=" << transformed_aruco.y() << ", z=" << transformed_aruco.z() << std::endl;
-       
+        
+        int current_control_mode = state_manager.getControlMode();
+        bool start_reached = reached_target_angle; 
+
+        if (current_control_mode != prev_control_mode) {
+            is_blending = true;
+            blend_alpha = 0.0f;
+        }
+        if (start_reached && !prev_reached_target_angle) {
+            is_blending = true;
+            blend_alpha = 0.0f;
+        }
+        prev_control_mode = current_control_mode;
+        prev_reached_target_angle = reached_target_angle;
+
         switch (state_manager.getControlMode())
         {
         case 0: // idle
@@ -682,7 +695,7 @@ private:
                 );
 
                 
-                cmd_vel_pub->publish(cmd_vel.cmd);
+                publish_blended_cmd_vel(cmd_vel.cmd);
                 
                 if (std::abs(cmd_vel.angle_error) < accepted_distance.angular_out){
                     std::cout << "Target angle reached, switching to linear control" << std::endl;
@@ -733,16 +746,8 @@ private:
                     previous_angle_error,
                     global_velocity
                 );
-                //geometry_msgs::msg::Twist cmd_vel = controller.dd_PD_controller(
-                //    current_position,
-                //    euler_angles,
-                //    target_position,
-                //    d_time,
-                //    previous_position_error,
-                //    previous_angle_error
-                //);
-                //std::cout << "Publishing cmd_vel: linear.x=" << cmd_vel.linear.x << ", angular.z=" << cmd_vel.angular.z << std::endl;
-                cmd_vel_pub->publish(cmd_vel);
+            
+                publish_blended_cmd_vel(cmd_vel);
                            
                 if(controller.euclidean_distance(current_position, goal_position) < accepted_distance.waypoint){
                     RCLCPP_INFO(this->get_logger(), "!!!!!!!!!Switch to precision mode!!!!!!!!!!");
@@ -766,7 +771,7 @@ private:
                     previous_position_error,
                     previous_angle_error
                 );
-                cmd_vel_pub->publish(cmd_vel);
+            publish_blended_cmd_vel(cmd_vel);   
             if (controller.euclidean_distance(current_position, goal_position) < goal_distance.threshold)
             {
                 RCLCPP_INFO(this->get_logger(), "Target position reached");
@@ -781,8 +786,6 @@ private:
                         cmd_vel_pub->publish(cmd_vel);
                     
                     }
-                
-                
             
             }
             break;
@@ -799,7 +802,7 @@ private:
                         previous_position_error,
                         previous_angle_error
                 );
-                cmd_vel_pub->publish(cmd_vel.cmd);
+                publish_blended_cmd_vel(cmd_vel.cmd);
                 if (controller.euclidean_distance(current_position, transformed_aruco) < goal_distance.threshold && std::abs(cmd_vel.angle_error) < accepted_distance.angular_in)
                 {
                     RCLCPP_INFO(this->get_logger(), "ARUCO REACHED!!!!!!!!!!");
@@ -807,20 +810,7 @@ private:
                     stop_robot();
                     return;
                 }
-                //cmd_vel_pub->publish(cmd_vel);
-                //if(controller.euclidean_distance(current_position, TBD) < goal_distance.threshold){
-                //    RCLCPP_INFO(this->get_logger(), "Target position reached");
-                //    cmd_vel.linear.x = 0.0;
-                //    cmd_vel.angular.z = 0.0;
-                //    Stamped3DVector target_profile(get_clock()->now(), 0.0, 0.0, 0.0);
-                //    state_manager.setTargetPosition(target_profile);
-                //    reached_target_angle = false;
-                //    previous_position_error.X.error = 0.0;
-                //    previous_angle_error.Z.error = 0.0;
-                //    cmd_vel_pub->publish(cmd_vel);
-                //    current_waypoint_idx_ = 0;
-                //    stop_control_loop();
-                //}
+               
                 break;
             }
             
@@ -861,8 +851,6 @@ private:
                 if (std::abs(cmd_vel_angular.angle_error) < accepted_distance.angular_out){
                     stop_robot();
                 }
-
-            
 
             
             break;
