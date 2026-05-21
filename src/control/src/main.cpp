@@ -251,7 +251,47 @@ private:
     bool keyboard_running_ = false;
 
 
+    //For blending control systems
+    geometry_msgs::msg::Twist prev_cmd_vel_;
+    float blend_alpha = 1.0f;
+    float blend_rate = 0.7f;
+    bool is_blending = false;
+    int prev_control_mode = 0;
+    bool prev_reached_target_angle = false;
+
     int control_mode = 0; // 0: idle, 1: goto, 2: stop
+
+
+    geometry_msgs::msg::Twist blend_twist(
+        const geometry_msgs::msg::Twist& from,
+        const geometry_msgs::msg::Twist& to,
+        float alpha)
+        {
+        geometry_msgs::msg::Twist blended;
+        blended.linear.x = alpha * to.linear.x + (1 - alpha) * from.linear.x;
+        blended.linear.y = alpha * to.linear.y + (1 - alpha) * from.linear.y;
+        blended.angular.z = alpha * to.angular.z + (1 - alpha) * from.angular.z;
+        return blended;
+        }
+    
+    void publish_blended_cmd_vel(const geometry_msgs::msg::Twist& new_cmd_vel)
+    {
+        if (is_blending)
+        {
+            blend_alpha += blend_rate;
+            if (blend_alpha >= 1.0f)
+            {
+                blend_alpha = 1.0f;
+                is_blending = false;
+            }
+            geometry_msgs::msg::Twist blended_cmd_vel = blend_twist(prev_cmd_vel_, new_cmd_vel, blend_alpha);
+            cmd_vel_pub->publish(blended_cmd_vel);
+        }
+        else
+        {
+            cmd_vel_pub->publish(new_cmd_vel);
+        }
+    }
 
     void replan()
     {   
