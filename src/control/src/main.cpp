@@ -253,8 +253,8 @@ private:
 
     //For blending control systems
     geometry_msgs::msg::Twist prev_cmd_vel;
-    float blend_alpha = 1.0f;
-    float blend_rate = 0.7f;
+    float blend_alpha = 0.0f;
+    float blend_rate = 0.067f;
     bool is_blending = false;
     int prev_control_mode = 0;
     bool prev_reached_target_angle = false;
@@ -498,7 +498,7 @@ private:
                 control_mode = 1;
                 reached_target_angle = false;
                 state_manager.setControlMode(control_mode);
-                start_control_loop(goal, result);
+     
                 active_goal_handle_ = goal_handle;
                 active_result_ = result;
                 action_active_ = true;
@@ -631,7 +631,10 @@ private:
         Stamped3DVector aruco_position = state_manager.getArucoPose();
         Eigen::Vector3d aruco_orientation = transformation.quaternion_to_euler(state_manager.getArucoOrientation());
         Stamped3DVector transformed_aruco = transformation.aruco_translation(aruco_position, aruco_orientation, current_position, euler_angles);
-        
+        std::cout << "transformed_aruco position: [" << transformed_aruco.x() << ", " << transformed_aruco.y() << ", " << transformed_aruco.z() << "]" << std::endl;
+
+
+
         int current_control_mode = state_manager.getControlMode();
         bool start_reached = reached_target_angle; 
 
@@ -820,8 +823,8 @@ private:
                     start_keyboard_thread();
 
                 geometry_msgs::msg::Twist cmd_vel;
-                const double lin_speed = 0.2;
-                const double ang_speed = 0.2;
+                const double lin_speed = 0.8;
+                const double ang_speed = 0.8;
 
                 if (key_up)    cmd_vel.linear.x  =  lin_speed;
                 if (key_down)  cmd_vel.linear.x  = -lin_speed;

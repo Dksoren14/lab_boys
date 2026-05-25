@@ -168,13 +168,6 @@ class ArucoSensorNode(Node):
 
                     self.publish_marker_pose(T_world_marker, marker_id)
 
-                    self.get_logger().info(
-                        f"Marker {marker_id}: "
-                        f"world x={T_world_marker[0, 3]:.3f}, "
-                        f"y={T_world_marker[1, 3]:.3f}, "
-                        f"z={T_world_marker[2, 3]:.3f}"
-                    )
-
                 center_x = int(corner_points[:, 0].mean())
                 center_y = int(corner_points[:, 1].mean())
 

@@ -167,7 +167,8 @@ geometry_msgs::msg::Twist Controller::dd_PD_controller_2(const Stamped3DVector& 
     previous_angle_error.Z.error = local_angle_error;
     previous_velocity_error.dX.error = velocity_error;
 
-    output_velocity.linear.x = std::clamp(output_velocity.linear.x, -0.5, 0.5); //Speed limit after Ridgeback Max Speed
+    //output_velocity.linear.x = std::clamp(output_velocity.linear.x, -0.5, 0.5); //Speed limit after Ridgeback Max Speed
+    output_velocity.linear.x = 0.5; //Override to maintain constant velocity, only regulating orientation
   
 
     //output_velocity.linear.x = 0.0;

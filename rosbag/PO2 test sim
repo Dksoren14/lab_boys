@@ -1,0 +1,46 @@
+PO2 TEST
+1: goal coordinate: [2.8643, -0.2239] Actual coordinate [2.8642, -0.2238]
+2: goal coordinate: [-6.7221, -0.6758] Actual coordinate [-6.7221, -0.6757]
+3: goal coordinate: [-5.6713, 2.2792] Actual coordinate [-5.6712, 2.2792]
+4: goal coordinate: [-4.1520, -3.8196] Actual coordinate [-4.1519, -3.8195]
+5: goal coordinate: [-0.8927, -1.0621] Actual coordinate [-0.8926, -1.0620]
+6: goal coordinate: [1.5506, 2.1250] Actual coordinate [1.5506, 2.1250]
+7: goal coordinate: [1.8342, -3.8914] Actual coordinate [1.8342, -3.8913]
+8: goal coordinate: [5.0476, -3.7399] Actual coordinate [5.0476, -3.7398]
+9: goal coordinate: [-6.6274, -3.8755] Actual coordinate [-6.6273, -3.8754]
+10: goal coordinate: [-7.0055, 4.1470] Actual coordinate [-7.0054, 4.1470]
+
+
+
+
+
+
+PO3 Test:
+aruco 20: coordinate: [-5.5237, -2.9003] Actual coordinate [-5.52, -2.9]
+aruco 20: coordinate: [-5.5222, -2.9009] Actual coordinate [-5.52, -2.9]
+aruco 20: coordinate: [-5.5253, -2.9008] Actual coordinate [-5.52, -2.9]
+aruco 20: coordinate: [-5.5259, -2.9005] Actual coordinate [-5.52, -2.9]
+aruco 20: coordinate: [-5.5238, -2.9007] Actual coordinate [-5.52, -2.9]
+
+aruco 25: coordinate: [6.8992, 0.6346] Actual coordinate [6.9, 0.63]
+aruco 25: coordinate: [6.8994, 0.6317] Actual coordinate [6.9, 0.63]
+aruco 25: coordinate: [6.8994, 0.6345] Actual coordinate [6.9, 0.63]
+aruco 25: coordinate: [6.8991, 0.6337] Actual coordinate [6.9, 0.63]
+aruco 25: coordinate: [6.8988, 0.6357] Actual coordinate [6.9, 0.63]
+
+
+
+
+
+aruco 20: goal x coordinate: [-4.65393] Actual x coordinate [-4.645]
+aruco 20: goal x coordinate: [-4.64261] Actual x coordinate [-4.645]
+aruco 20: goal x coordinate: [-4.64564] Actual x coordinate [-4.645]
+aruco 20: goal x coordinate: [-4.64093] Actual x coordinate [-4.645]
+aruco 20: goal x coordinate: [-4.64991] Actual x coordinate [-4.645]
+
+
+aruco 25: goal y coordinate: [-0.244837] Actual y coordinate [-0.245]
+aruco 25: goal y coordinate: [-0.246887] Actual y coordinate [-0.245]
+aruco 25: goal y coordinate: [-0.256476] Actual y coordinate [-0.245]
+aruco 25: goal y coordinate: [-0.255792] Actual y coordinate [-0.245]
+aruco 25: goal y coordinate: [-0.247435] Actual y coordinate [-0.245]
