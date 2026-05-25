@@ -35,7 +35,7 @@ def generate_launch_description():
     control_enabled = LaunchConfiguration('control') #changed from lab_base to control
     aruco = LaunchConfiguration('aruco')
 
-    world = os.path.join(gazebo_pkg, 'worlds', 'laboratory.world') #changed reference to gazebo pkg
+    world = os.path.join(gazebo_pkg, 'worlds', 'sim_environment.world') #changed reference to gazebo pkg
     rviz_config = os.path.join(gazebo_pkg, 'rviz_configs', 'default.rviz') #changed reference to gazebo pkg
 
     source_models = os.path.join(gazebo_pkg, 'models') #changed reference to gazebo pkg
@@ -228,7 +228,7 @@ def generate_launch_description():
         parameters=[
             params_nav2,
             {'use_sim_time': True},
-            {'yaml_filename': os.path.join(get_package_share_directory('gazebo'), 'maps', 'Test_Lab_01.yaml')},
+            {'yaml_filename': os.path.join(get_package_share_directory('gazebo'), 'maps', 'sim_map.yaml')},
             {'topic_name': '/keepout_filter_mask'},
             {'frame_id': 'map'},
         ],
